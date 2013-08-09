@@ -1,2 +1,6 @@
 target
 *.swp
+tags
+.classpath
+.project
+.cache
