@@ -67,13 +67,6 @@ trait Parser extends RegexParsers {
     }
   }
 
-  def e: Parser[_] =
-    "0" | "1" | id |
-      ("(" ~ "if0" ~ e ~ e ~ e ~ ")") |
-      ("(" ~ "fold" ~ e ~ e ~ "(" ~ "lambda" ~ "(" ~ id ~ id ~ ")" ~ e ~ ")" ~ ")") |
-      ("(" ~ op1 ~ e ~ ")") |
-      ("(" ~ op2 ~ e ~ e ~ ")")
-
   def P = lambda1
 
   def parse(s: String) = parseAll(P, s)
@@ -139,13 +132,9 @@ object Program extends Parser with App {
   assert(0xFF  == print(evaluate(parseAll(P, "(lambda (x) (fold x 0 (lambda (y z) (if0 y y y))))").get, Map("x" → 0xFF00000000000000L))))
   assert(0     == print(evaluate(parseAll(P, "(lambda (x) (fold x 0 (lambda (y z) (if0 y y y))))").get, Map("x" → 0x00000000000000FFL))))
 
-
   def print(long: Long) = {
     println(long.toBinaryString)
     long
   }
-
-  val p = "(lambda (x) (fold x 0 (lambda (y z) (or y z))))"
-  println(parse(p))
 
 }
