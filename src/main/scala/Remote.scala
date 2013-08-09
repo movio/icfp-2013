@@ -38,12 +38,12 @@ object Remote extends App {
     solved: Option[Boolean],
     timeLeft: Option[Int])
 
-  def myProblems(): Problem = {
+  def myProblems(): Seq[Problem] = {
     implicit val resultFormatter = jsonFormat5(Problem)
     
     val result = Http(url(BaseUrl + "myproblems").POST <<? params << "{}" OK as.String)
     
-    result().asJson.convertTo[Problem]
+    result().asJson.convertTo[Seq[Problem]]
   }
 
   case class EvalRequest(
