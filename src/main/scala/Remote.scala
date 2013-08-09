@@ -29,6 +29,17 @@ object Remote extends App {
     result().asJson.convertTo[TrainingProblem]
   }
 
+  case class Problem(
+    id: String,
+    size: Int,
+    operators: Seq[String],
+    solved: Option[Boolean],
+    timeLeft: Option[Int])
+
+  def myProblems(): Problem = {
+    ???
+  }
+
   case class EvalRequest(
     id: Option[String],
     program: Option[String],
@@ -40,6 +51,20 @@ object Remote extends App {
     message: Option[String])
 
   def eval(request: EvalRequest): EvalResponse = {
+    ???
+  }
+
+  case class GuessRequest(
+    id: String,
+    program: String)
+
+  case class GuessResponse(
+    status: String,
+    values: Option[Seq[String]],
+    message: Option[String],
+    lightning: Option[Boolean])
+
+  def guess(request: EvalRequest): EvalResponse = {
     ???
   }
 
