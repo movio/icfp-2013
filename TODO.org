@@ -1,0 +1,7 @@
+* ideas for next things
+** TODO size function (on/in ast nodes?)
+** TODO generate basic stream of programs
+** TODO limit stream of programs by requested program size
+** TODO retrieve sample output for sample input
+** TODO function to run program against input, and confirm output (our assert's)
+** TODO limit stream of programs by validating input versus output
