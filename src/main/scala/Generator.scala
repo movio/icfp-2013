@@ -61,21 +61,6 @@ object Generator extends App {
   assert(astForOp("xor").isInstanceOf[Xor])
   assert(astForOp("plus").isInstanceOf[Plus])
 
-  //    {
-  //        "id": "0Q0hlUyfQA4kvJa6YFpA7VSn",
-  //        "size": 3,
-  //        "operators": [
-  //            "shl1"
-  //        ],
-  //        "solved": true,
-  //        "timeLeft": 0
-  //    },
-
-  // solution:
-
-  // {"id":"0Q0hlUyfQA4kvJa6YFpA7VSn",
-  //    "program":"(lambda (x) (shl1 x))"}
-
   type Program = Lambda1
 
   def fillAST[T <: Expr](expr: T, opsLeft: List[String], names: List[String]): T =
@@ -128,9 +113,12 @@ object Generator extends App {
 
     expr match {
       case Not(PlaceHolder) ⇒ fillAll(Not(_))
+      case Shl1(PlaceHolder) ⇒ fillAll(Shl1(_))
       case Lambda1(arg, PlaceHolder) ⇒ fillAll(Lambda1(arg, _))
     }
   }
+
+
 
   val emptyProg = Lambda1(Id("a"), PlaceHolder)
   assert(fill(emptyProg, List(), List("a")) contains Lambda1(Id("a"), Value(0)))
@@ -151,6 +139,36 @@ object Generator extends App {
   assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Id("a")))
 
   assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Id("a")))
+
+  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Id("a")))
+
+  //    {
+  //        "id": "0Q0hlUyfQA4kvJa6YFpA7VSn",
+  //        "size": 3,
+  //        "operators": [
+  //            "shl1"
+  //        ],
+  //        "solved": true,
+  //        "timeLeft": 0
+  //    },
+
+  // solution:
+
+  // {"id":"0Q0hlUyfQA4kvJa6YFpA7VSn",
+  //    "program":"(lambda (x) (shl1 x))"}
+
+  assert(fill(emptyProg, List("shl1"), List(emptyProg.argName)) contains Lambda1(Id("a"), Shl1(Id("a"))))
+
+
+
+
+
+
+
+
+
+
+
   // too hard.
   // always
   // 1 inputName / lambda
