@@ -1,6 +1,9 @@
 import util.parsing.combinator._
 
 trait Expr {
+  // TODO: names or 1 or 0
+  // def fillWithRandomness(names: List[String])
+
   // meh. can't really return this.type; cf http://stackoverflow.com/questions/5331722/define-method-to-return-type-of-class-extending-it
   def fillWithRandomNames(names: List[String]): Expr = ???
 }
