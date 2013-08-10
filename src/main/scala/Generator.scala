@@ -98,14 +98,27 @@ object Generator extends App {
       if (ops.size + 2 == size) {
         val inputName = gensym
         Stream(fillAST(Lambda1(Id(inputName), PlaceHolder), ops.toList, List(inputName)))
+      } else if (ops.size + 3 == size) { // meh. TODO
+        val inputName = gensym
+        Stream(fillAST(Lambda1(Id(inputName), PlaceHolder), ops.toList, List(inputName)))
       } else ???
     }
   }
 
+  // op1
   List(("not", -2L), ("shl1", 2L), ("shr1", 0L), ("shr4", 0L), ("shr16", 0L)) foreach {
     case (op, expected) ⇒
       assert(1 == generatePrograms(Set(op), size = 3).size)
       val genProgram = generatePrograms(Set(op), size = 3).head
+      println(genProgram)
+      assert(expected == Interpreter.evaluate(genProgram, Map(genProgram.argName → 1)))
+  }
+
+  // op2
+  List(("and", 1L), ("or", 1L), ("xor", 0L), ("plus", 2L)) foreach {
+    case (op, expected) ⇒
+      assert(1 == generatePrograms(Set(op), size = 4).size)
+      val genProgram = generatePrograms(Set(op), size = 4).head
       println(genProgram)
       assert(expected == Interpreter.evaluate(genProgram, Map(genProgram.argName → 1)))
   }

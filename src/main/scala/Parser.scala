@@ -47,10 +47,40 @@ case class Shr16(e: Expr) extends Expr {
   }
 
 }
-case class And(l: Expr, r: Expr) extends Expr
-case class Or(l: Expr, r: Expr) extends Expr
-case class Xor(l: Expr, r: Expr) extends Expr
-case class Plus(l: Expr, r: Expr) extends Expr
+case class And(l: Expr, r: Expr) extends Expr {
+
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case And(PlaceHolder, PlaceHolder) ⇒ And(Id(RandomUtils.pickRandom(names)), Id(RandomUtils.pickRandom(names)))
+    case And(_, PlaceHolder)           ⇒ And(l.fillWithRandomNames(names), Id(RandomUtils.pickRandom(names)))
+    case And(PlaceHolder, _)           ⇒ And(Id(RandomUtils.pickRandom(names)), r.fillWithRandomNames(names))
+    case And(_, _)                     ⇒ And(l.fillWithRandomNames(names), r.fillWithRandomNames(names))
+  }
+
+}
+case class Or(l: Expr, r: Expr) extends Expr {
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case Or(PlaceHolder, PlaceHolder) ⇒ Or(Id(RandomUtils.pickRandom(names)), Id(RandomUtils.pickRandom(names)))
+    case Or(_, PlaceHolder)           ⇒ Or(l.fillWithRandomNames(names), Id(RandomUtils.pickRandom(names)))
+    case Or(PlaceHolder, _)           ⇒ Or(Id(RandomUtils.pickRandom(names)), r.fillWithRandomNames(names))
+    case Or(_, _)                     ⇒ Or(l.fillWithRandomNames(names), r.fillWithRandomNames(names))
+  }
+}
+case class Xor(l: Expr, r: Expr) extends Expr {
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case Xor(PlaceHolder, PlaceHolder) ⇒ Xor(Id(RandomUtils.pickRandom(names)), Id(RandomUtils.pickRandom(names)))
+    case Xor(_, PlaceHolder)           ⇒ Xor(l.fillWithRandomNames(names), Id(RandomUtils.pickRandom(names)))
+    case Xor(PlaceHolder, _)           ⇒ Xor(Id(RandomUtils.pickRandom(names)), r.fillWithRandomNames(names))
+    case Xor(_, _)                     ⇒ Xor(l.fillWithRandomNames(names), r.fillWithRandomNames(names))
+  }
+}
+case class Plus(l: Expr, r: Expr) extends Expr {
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case Plus(PlaceHolder, PlaceHolder) ⇒ Plus(Id(RandomUtils.pickRandom(names)), Id(RandomUtils.pickRandom(names)))
+    case Plus(_, PlaceHolder)           ⇒ Plus(l.fillWithRandomNames(names), Id(RandomUtils.pickRandom(names)))
+    case Plus(PlaceHolder, _)           ⇒ Plus(Id(RandomUtils.pickRandom(names)), r.fillWithRandomNames(names))
+    case Plus(_, _)                     ⇒ Plus(l.fillWithRandomNames(names), r.fillWithRandomNames(names))
+  }
+}
 
 case class If0(p: Expr, t: Expr, f: Expr) extends Expr
 case class Fold(x: Expr, init: Expr, lambda: Lambda2) extends Expr
