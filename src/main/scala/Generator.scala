@@ -116,6 +116,17 @@ object Generator extends App {
 
   }
 
+  def fill(expr: Expr, ops: Set[String], names: List[String]): Stream[Expr] =
+    expr match {
+      case Lambda1(arg, PlaceHolder) ⇒
+        Lambda1(arg, Value(0)) #:: Lambda1(arg, Value(1)) #:: names.map(n ⇒ Lambda1(arg, Id(n))).toStream
+    }
+
+  val emptyProg = Lambda1(Id("a"), PlaceHolder)
+  assert(fill(emptyProg, Set(), List("a")) contains Lambda1(Id("a"), Value(0)))
+  assert(fill(emptyProg, Set(), List("a")) contains Lambda1(Id("a"), Value(1)))
+  assert(fill(emptyProg, Set(), List("a")) contains Lambda1(Id("a"), Id("a")))
+
   // too hard.
   // always
   // 1 inputName / lambda
