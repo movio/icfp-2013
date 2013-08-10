@@ -1,28 +1,43 @@
 import util.parsing.combinator._
 
-trait Expr
+trait Expr {
+  // meh. can't really return this.type; cf http://stackoverflow.com/questions/5331722/define-method-to-return-type-of-class-extending-it
+  def fillWithRandomNames(names: List[String]): Expr = ???
+}
 case class Value(value: Long) extends Expr
 case class Id(id: String) extends Expr
 
-trait Op extends Expr
-trait Op1 extends Op
-case class Not(e: Expr) extends Op1
-case class Shl1(e: Expr) extends Op1
-case class Shr1(e: Expr) extends Op1
-case class Shr4(e: Expr) extends Op1
-case class Shr16(e: Expr) extends Op1
-trait Op2 extends Op
-case class And(l: Expr, r: Expr) extends Op2
-case class Or(l: Expr, r: Expr) extends Op2
-case class Xor(l: Expr, r: Expr) extends Op2
-case class Plus(l: Expr, r: Expr) extends Op2
+case class Not(e: Expr) extends Expr
+case class Shl1(e: Expr) extends Expr {
+
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case Shl1(PlaceHolder) ⇒ Shl1(Id(RandomUtils.pickRandom(names)))
+    case _                 ⇒ Shl1(e.fillWithRandomNames(names))
+  }
+
+}
+case class Shr1(e: Expr) extends Expr
+case class Shr4(e: Expr) extends Expr
+case class Shr16(e: Expr) extends Expr
+case class And(l: Expr, r: Expr) extends Expr
+case class Or(l: Expr, r: Expr) extends Expr
+case class Xor(l: Expr, r: Expr) extends Expr
+case class Plus(l: Expr, r: Expr) extends Expr
 
 case class If0(p: Expr, t: Expr, f: Expr) extends Expr
 case class Fold(x: Expr, init: Expr, lambda: Lambda2) extends Expr
 
-trait Lambda extends Expr
-case class Lambda1(id: Id, body: Expr) extends Lambda
-case class Lambda2(id1: Id, id2: Id, body: Expr) extends Lambda
+case class Lambda1(id: Id, body: Expr) extends Expr {
+  def argName = id.id
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case Lambda1(_, PlaceHolder) ⇒ Lambda1(id, Id(RandomUtils.pickRandom(names)))
+    case _                       ⇒ Lambda1(id, body.fillWithRandomNames(names))
+  }
+}
+case class Lambda2(id1: Id, id2: Id, body: Expr) extends Expr {
+  def argName1 = id1.id
+  def argName2 = id2.id
+}
 
 object Parser extends RegexParsers {
 

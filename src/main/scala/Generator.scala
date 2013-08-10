@@ -67,4 +67,44 @@ object Generator extends App {
   // {"id":"0Q0hlUyfQA4kvJa6YFpA7VSn",
   //    "program":"(lambda (x) (shl1 x))"}
 
+  type Program = Lambda1
+
+  def fillAST[T <: Expr](expr: T, opsLeft: List[String], names: List[String]): T =
+    if (opsLeft.isEmpty) expr.fillWithRandomNames(names).asInstanceOf[T]
+    else expr match {
+      case Not(PlaceHolder) ⇒ ???
+      case Shl1(PlaceHolder) ⇒ ???
+      case Shr1(PlaceHolder) ⇒ ???
+      case Shr4(PlaceHolder) ⇒ ???
+      case Shr16(PlaceHolder) ⇒ ???
+      case And(PlaceHolder, PlaceHolder) ⇒ ???
+      case Or(PlaceHolder, PlaceHolder) ⇒ ???
+      case Xor(PlaceHolder, PlaceHolder) ⇒ ???
+      case Plus(PlaceHolder, PlaceHolder) ⇒ ???
+      case If0(PlaceHolder, PlaceHolder, PlaceHolder) ⇒ ???
+      case Fold(PlaceHolder, PlaceHolder, Lambda2(Id(arg1), Id(arg2), PlaceHolder)) ⇒ ???
+      case Lambda1(arg, PlaceHolder) ⇒
+        //fillAST(expr.copy(body = astForOp(opsLeft.head)), opsLeft.tail, names)
+        // meh. not sure how to trick the type at the moment.
+        fillAST(new Lambda1(arg, astForOp(opsLeft.head)), opsLeft.tail, names).asInstanceOf[T]
+    }
+
+  // heh. should we confirm that size is Int?
+  def generatePrograms(ops: Set[String], size: Int): Stream[Program] = {
+    //require(size >= 3, "minimum number of ops in our problem set is 3")
+    if (ops contains "tfold") ???
+    else {
+      // actual ops guess
+      if (ops.size + 2 == size) {
+        val inputName = gensym
+        Stream(fillAST(Lambda1(Id(inputName), PlaceHolder), ops.toList, List(inputName)))
+      } else ???
+    }
+  }
+
+  assert(1 == generatePrograms(Set("shl1"), size = 3).size)
+  val shl1Program = generatePrograms(Set("shl1"), size = 3).head
+  println(shl1Program)
+  assert(2L == Interpreter.evaluate(shl1Program, Map(shl1Program.argName → 1)))
+
 }
