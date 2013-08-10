@@ -179,6 +179,54 @@ object Generator extends App {
   //   case "or" | "xor" | "and" | "plus" ⇒ 2
   // }
 
-  // assert(4 == Set("lambda", "or") map opSize)
+  def size(expr: Expr): Int = expr match {
+    case Value(_) | Id(_) ⇒ 1
+    case Not(e) ⇒ 1 + size(e)
+    case Shl1(e) ⇒ 1 + size(e)
+    case Shr1(e) ⇒ 1 + size(e)
+    case Shr4(e) ⇒ 1 + size(e)
+    case Shr16(e) ⇒ 1 + size(e)
+    case And(e1, e2) ⇒ 1 + size(e1) + size(e2)
+    case Or(e1, e2) ⇒ 1 + size(e1) + size(e2)
+    case Xor(e1, e2) ⇒ 1 + size(e1) + size(e2)
+    case Plus(e1, e2) ⇒ 1 + size(e1) + size(e2)
+    case If0(e1, e2, e3) ⇒ 1 + size(e1) + size(e2) + size(e3)
+    case Fold(e1, e2, l) ⇒ 1 + size(e1) + size(e2) + size(l)
+    case Lambda1(_, body) ⇒ 1 + size(body)
+    case Lambda2(_, _, body) ⇒ 1 + size(body)
+  }
 
+  val prog20 = "(lambda (x_38261) (fold x_38261 0 (lambda (x_38261 x_38262) (if0 x_38261 (or (shr4 (if0 (plus (shr4 (shl1 (shr4 x_38262))) x_38261) 1 x_38261)) x_38261) x_38261))))"
+  assert(20 == size(Parser.parse(prog20).get))
+
+  def size(ops: List[Expr]): Int = {
+    ops.map {
+      case _: Not ⇒ 1
+      case _: Shl1 ⇒ 1
+      case _: Shr1 ⇒ 1
+      case _: Shr4 ⇒ 1
+      case _: Shr16 ⇒ 1
+      case _: And ⇒ 2
+      case _: Or ⇒ 2
+      case _: Xor ⇒ 2
+      case _: Plus ⇒ 2
+      case _: If0 ⇒ 3
+      case _: Fold ⇒ 4
+      case _ ⇒ ???
+    }.sum + 2
+  }
+
+  assert(20 == size(List(
+    Fold(PlaceHolder, PlaceHolder, Lambda2(Id(gensym), Id(gensym), PlaceHolder)),
+    If0(PlaceHolder, PlaceHolder, PlaceHolder),
+    Or(PlaceHolder, PlaceHolder),
+    Shr4(PlaceHolder),
+    If0(PlaceHolder, PlaceHolder, PlaceHolder),
+    Plus(PlaceHolder, PlaceHolder),
+    Shr4(PlaceHolder),
+    Shl1(PlaceHolder),
+    Shr4(PlaceHolder)
+  )))
+
+  // assert(4 == Set("lambda", "or") map opSize)
 }
