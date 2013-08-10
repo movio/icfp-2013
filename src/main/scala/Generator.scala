@@ -114,6 +114,9 @@ object Generator extends App {
     expr match {
       case Not(PlaceHolder) ⇒ fillAll(Not(_))
       case Shl1(PlaceHolder) ⇒ fillAll(Shl1(_))
+      case Shr1(PlaceHolder) ⇒ fillAll(Shr1(_))
+      case Shr4(PlaceHolder) ⇒ fillAll(Shr4(_))
+      case Shr16(PlaceHolder) ⇒ fillAll(Shr16(_))
       case Lambda1(arg, PlaceHolder) ⇒ fillAll(Lambda1(arg, _))
     }
   }
@@ -141,6 +144,10 @@ object Generator extends App {
   assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Id("a")))
 
   assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Id("a")))
+  assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shl1(Id("a"))))
+  assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shr4(Id("a"))))
+  assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shr4(Shl1(Id("a")))))
+  assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shl1(Shr4(Id("a")))))
 
   //    {
   //        "id": "0Q0hlUyfQA4kvJa6YFpA7VSn",
