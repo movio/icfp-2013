@@ -116,6 +116,21 @@ object Generator extends App {
 
   }
 
+  // too hard.
+  // always
+  // 1 inputName / lambda
+  // given operations fill size
+  // not 1 + 1
+  // and 1 + 2
+  // or  1 + 2
+
+  // def opSize(op: String): Int = op match {
+  //   case "lambda" | "not"              ⇒ 1
+  //   case "or" | "xor" | "and" | "plus" ⇒ 2
+  // }
+
+  // assert(4 == Set("lambda", "or") map opSize)
+
   // op1
   List(("not", -2L), ("shl1", 2L), ("shr1", 0L), ("shr4", 0L), ("shr16", 0L)) foreach {
     case (op, expected) ⇒
