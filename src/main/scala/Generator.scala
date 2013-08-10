@@ -28,7 +28,7 @@ object Generator extends App {
   println(RandomUtils.comb2(List(1)))
   println(RandomUtils.comb2(List(1, 2)))
   println(RandomUtils.comb2(List(1, 2, 3)))
-//  assert(List((1, 1)) == RandomUtils.combinations2(List(1, 2)))
+  //  assert(List((1, 1)) == RandomUtils.combinations2(List(1, 2)))
 
   private var counter = 0
   def gensym = {
@@ -83,45 +83,43 @@ object Generator extends App {
     def fill1(f: Expr ⇒ Expr) = fillNumbers1(f) ++ fillNames1(f) ++ fillOps1(f)
 
     def fillOps2(f: (Expr, Expr) ⇒ Expr) =
-      RandomUtils.comb2(ops).toStream.flatMap{ case (o1, o2) ⇒
-        // WIP. not there yet.
-        if (o1 != o2) {
-          fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
-            case (e1, e2) ⇒ f(e1, e2)
+      RandomUtils.comb2(ops).toStream.flatMap {
+        case (o1, o2) ⇒
+          // WIP. not there yet.
+          if (o1 != o2) {
+            fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
+              case (e1, e2) ⇒ f(e1, e2)
+            }
+          } else {
+            fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
+              case (e1, e2) ⇒ f(e1, e2)
+            }
           }
-        }
-        else {
-          fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
-            case (e1, e2) ⇒ f(e1, e2)
-          }
-        }
       }
 
     def fillNumbers2(f: (Expr, Expr) ⇒ Expr) =
       f(Value(0), Value(0)) #:: f(Value(1), Value(0)) #:: f(Value(0), Value(1)) #:: f(Value(1), Value(1)) #:: Stream.empty[Expr]
     def fillNames2(f: (Expr, Expr) ⇒ Expr) =
-      RandomUtils.comb2(names).toStream.flatMap { case (n1, n2) ⇒
-        if (n1 != n2) { // order matters in this case
-          f(Id(n1), Id(n2)) #:: f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
-        } else {
-          f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
-        }
+      RandomUtils.comb2(names).toStream.flatMap {
+        case (n1, n2) ⇒
+          if (n1 != n2) { // order matters in this case
+            f(Id(n1), Id(n2)) #:: f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
+          } else {
+            f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
+          }
       }
     def fill2(f: (Expr, Expr) ⇒ Expr) = fillNumbers2(f) ++ fillNames2(f)
 
-
     expr match {
-      case Not(PlaceHolder) ⇒ fill1(Not(_))
-      case Shl1(PlaceHolder) ⇒ fill1(Shl1(_))
-      case Shr1(PlaceHolder) ⇒ fill1(Shr1(_))
-      case Shr4(PlaceHolder) ⇒ fill1(Shr4(_))
-      case Shr16(PlaceHolder) ⇒ fill1(Shr16(_))
+      case Not(PlaceHolder)             ⇒ fill1(Not(_))
+      case Shl1(PlaceHolder)            ⇒ fill1(Shl1(_))
+      case Shr1(PlaceHolder)            ⇒ fill1(Shr1(_))
+      case Shr4(PlaceHolder)            ⇒ fill1(Shr4(_))
+      case Shr16(PlaceHolder)           ⇒ fill1(Shr16(_))
       case Or(PlaceHolder, PlaceHolder) ⇒ fill2(Or(_, _))
-      case Lambda1(arg, PlaceHolder) ⇒ fill1(Lambda1(arg, _))
+      case Lambda1(arg, PlaceHolder)    ⇒ fill1(Lambda1(arg, _))
     }
   }
-
-
 
   val emptyProg = Lambda1(Id("a"), PlaceHolder)
   assert(fill(emptyProg, List(), List("a")) contains Lambda1(Id("a"), Value(0)))
@@ -167,7 +165,6 @@ object Generator extends App {
   //    "program":"(lambda (x) (shl1 x))"}
 
   assert(fill(emptyProg, List("shl1"), List(emptyProg.argName)) contains Lambda1(Id("a"), Shl1(Id("a"))))
-
 
   // too hard.
   // always
