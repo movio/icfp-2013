@@ -1,5 +1,11 @@
 case object PlaceHolder extends Expr
 
+object RandomUtils {
+
+  def pickRandom[T](choices: List[T]): T = choices(scala.util.Random.nextInt % choices.size)
+
+}
+
 object Generator extends App {
 
   private var counter = 0
