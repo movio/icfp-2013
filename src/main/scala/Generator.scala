@@ -63,44 +63,6 @@ object Generator extends App {
 
   type Program = Lambda1
 
-  def fillAST[T <: Expr](expr: T, opsLeft: List[String], names: List[String]): T =
-    if (opsLeft.isEmpty) expr.fillWithRandomNames(names).asInstanceOf[T]
-    else expr match {
-      case Not(PlaceHolder) ⇒ ???
-      case Shl1(PlaceHolder) ⇒ ???
-      case Shr1(PlaceHolder) ⇒ ???
-      case Shr4(PlaceHolder) ⇒ ???
-      case Shr16(PlaceHolder) ⇒ ???
-      case And(PlaceHolder, PlaceHolder) ⇒ ???
-      case Or(PlaceHolder, PlaceHolder) ⇒ ???
-      case Xor(PlaceHolder, PlaceHolder) ⇒ ???
-      case Plus(PlaceHolder, PlaceHolder) ⇒ ???
-      case If0(PlaceHolder, PlaceHolder, PlaceHolder) ⇒ ???
-      case Fold(PlaceHolder, PlaceHolder, Lambda2(Id(arg1), Id(arg2), PlaceHolder)) ⇒ ???
-      case Lambda1(arg, PlaceHolder) ⇒
-        //fillAST(expr.copy(body = astForOp(opsLeft.head)), opsLeft.tail, names)
-        // meh. not sure how to trick the type at the moment.
-        fillAST(new Lambda1(arg, astForOp(opsLeft.head)), opsLeft.tail, names).asInstanceOf[T]
-    }
-
-  def generatePrograms(ops: Set[String], size: Int): Stream[Program] = {
-    def programSkeleton(inputName: String) = Lambda1(Id(inputName), PlaceHolder)
-
-    if (ops contains "tfold") ???
-    else {
-      if (ops.size + 2 == size) {
-        val inputName = gensym
-        Stream(fillAST(programSkeleton(inputName), ops.toList, List(inputName)))
-
-      } else if (ops.size + 3 == size) {
-        val inputName = gensym
-        Stream(fillAST(programSkeleton(inputName), ops.toList, List(inputName)))
-
-      } else ???
-    }
-
-  }
-
   def fill(expr: Expr, ops: Seq[String], names: Seq[String]): Stream[Expr] = {
     def fillOps(f: Expr ⇒ Expr) =
       ops.toStream.flatMap(op ⇒ fill(astForOp(op), ops diff Seq(op), names) map f)
@@ -167,15 +129,6 @@ object Generator extends App {
   assert(fill(emptyProg, List("shl1"), List(emptyProg.argName)) contains Lambda1(Id("a"), Shl1(Id("a"))))
 
 
-
-
-
-
-
-
-
-
-
   // too hard.
   // always
   // 1 inputName / lambda
@@ -190,24 +143,5 @@ object Generator extends App {
   // }
 
   // assert(4 == Set("lambda", "or") map opSize)
-
-  // op1
-  List(("not", -2L), ("shl1", 2L), ("shr1", 0L), ("shr4", 0L), ("shr16", 0L)) foreach {
-    case (op, expected) ⇒
-      assert(1 == generatePrograms(Set(op), size = 3).size)
-      val genProgram = generatePrograms(Set(op), size = 3).head
-      println(genProgram)
-      assert(expected == Interpreter.evaluate(genProgram, Map(genProgram.argName → 1)))
-  }
-
-  // op2
-  List(("and", 1L), ("or", 1L), ("xor", 0L), ("plus", 2L)) foreach {
-    case (op, expected) ⇒
-      assert(1 == generatePrograms(Set(op), size = 4).size)
-      val genProgram = generatePrograms(Set(op), size = 4).head
-      println(genProgram)
-      assert(ProgramTester(Map(1L → expected)).testProgram(genProgram))
-      assert(expected == Interpreter.evaluate(genProgram, Map(genProgram.argName → 1)))
-  }
 
 }

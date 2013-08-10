@@ -1,99 +1,25 @@
 import util.parsing.combinator._
 
-trait Expr {
-  // TODO: names or 1 or 0
-  // def fillWithRandomness(names: List[String])
+trait Expr
 
-  // meh. can't really return this.type; cf http://stackoverflow.com/questions/5331722/define-method-to-return-type-of-class-extending-it
-  def fillWithRandomNames(names: List[String]): Expr = ???
-}
 case class Value(value: Long) extends Expr
 case class Id(id: String) extends Expr
 
-case class Not(e: Expr) extends Expr {
-
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case Not(PlaceHolder) ⇒ Not(Id(RandomUtils.pickRandom(names)))
-    case _                ⇒ Not(e.fillWithRandomNames(names))
-  }
-
-}
-case class Shl1(e: Expr) extends Expr {
-
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case Shl1(PlaceHolder) ⇒ Shl1(Id(RandomUtils.pickRandom(names)))
-    case _                 ⇒ Shl1(e.fillWithRandomNames(names))
-  }
-
-}
-case class Shr1(e: Expr) extends Expr {
-
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case Shr1(PlaceHolder) ⇒ Shr1(Id(RandomUtils.pickRandom(names)))
-    case _                 ⇒ Shr1(e.fillWithRandomNames(names))
-  }
-
-}
-case class Shr4(e: Expr) extends Expr {
-
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case Shr4(PlaceHolder) ⇒ Shr4(Id(RandomUtils.pickRandom(names)))
-    case _                 ⇒ Shr4(e.fillWithRandomNames(names))
-  }
-
-}
-case class Shr16(e: Expr) extends Expr {
-
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case Shr16(PlaceHolder) ⇒ Shr16(Id(RandomUtils.pickRandom(names)))
-    case _                  ⇒ Shr16(e.fillWithRandomNames(names))
-  }
-
-}
-case class And(l: Expr, r: Expr) extends Expr {
-
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case And(PlaceHolder, PlaceHolder) ⇒ And(Id(RandomUtils.pickRandom(names)), Id(RandomUtils.pickRandom(names)))
-    case And(_, PlaceHolder)           ⇒ And(l.fillWithRandomNames(names), Id(RandomUtils.pickRandom(names)))
-    case And(PlaceHolder, _)           ⇒ And(Id(RandomUtils.pickRandom(names)), r.fillWithRandomNames(names))
-    case And(_, _)                     ⇒ And(l.fillWithRandomNames(names), r.fillWithRandomNames(names))
-  }
-
-}
-case class Or(l: Expr, r: Expr) extends Expr {
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case Or(PlaceHolder, PlaceHolder) ⇒ Or(Id(RandomUtils.pickRandom(names)), Id(RandomUtils.pickRandom(names)))
-    case Or(_, PlaceHolder)           ⇒ Or(l.fillWithRandomNames(names), Id(RandomUtils.pickRandom(names)))
-    case Or(PlaceHolder, _)           ⇒ Or(Id(RandomUtils.pickRandom(names)), r.fillWithRandomNames(names))
-    case Or(_, _)                     ⇒ Or(l.fillWithRandomNames(names), r.fillWithRandomNames(names))
-  }
-}
-case class Xor(l: Expr, r: Expr) extends Expr {
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case Xor(PlaceHolder, PlaceHolder) ⇒ Xor(Id(RandomUtils.pickRandom(names)), Id(RandomUtils.pickRandom(names)))
-    case Xor(_, PlaceHolder)           ⇒ Xor(l.fillWithRandomNames(names), Id(RandomUtils.pickRandom(names)))
-    case Xor(PlaceHolder, _)           ⇒ Xor(Id(RandomUtils.pickRandom(names)), r.fillWithRandomNames(names))
-    case Xor(_, _)                     ⇒ Xor(l.fillWithRandomNames(names), r.fillWithRandomNames(names))
-  }
-}
-case class Plus(l: Expr, r: Expr) extends Expr {
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case Plus(PlaceHolder, PlaceHolder) ⇒ Plus(Id(RandomUtils.pickRandom(names)), Id(RandomUtils.pickRandom(names)))
-    case Plus(_, PlaceHolder)           ⇒ Plus(l.fillWithRandomNames(names), Id(RandomUtils.pickRandom(names)))
-    case Plus(PlaceHolder, _)           ⇒ Plus(Id(RandomUtils.pickRandom(names)), r.fillWithRandomNames(names))
-    case Plus(_, _)                     ⇒ Plus(l.fillWithRandomNames(names), r.fillWithRandomNames(names))
-  }
-}
+case class Not(e: Expr) extends Expr
+case class Shl1(e: Expr) extends Expr
+case class Shr1(e: Expr) extends Expr
+case class Shr4(e: Expr) extends Expr
+case class Shr16(e: Expr) extends Expr
+case class And(l: Expr, r: Expr) extends Expr
+case class Or(l: Expr, r: Expr) extends Expr
+case class Xor(l: Expr, r: Expr) extends Expr
+case class Plus(l: Expr, r: Expr) extends Expr
 
 case class If0(p: Expr, t: Expr, f: Expr) extends Expr
 case class Fold(x: Expr, init: Expr, lambda: Lambda2) extends Expr
 
 case class Lambda1(id: Id, body: Expr) extends Expr {
   def argName = id.id
-  override def fillWithRandomNames(names: List[String]) = this match {
-    case Lambda1(_, PlaceHolder) ⇒ Lambda1(id, Id(RandomUtils.pickRandom(names)))
-    case _                       ⇒ Lambda1(id, body.fillWithRandomNames(names))
-  }
 }
 case class Lambda2(id1: Id, id2: Id, body: Expr) extends Expr {
   def argName1 = id1.id
