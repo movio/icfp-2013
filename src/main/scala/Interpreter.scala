@@ -6,13 +6,14 @@ object Interpreter {
     println
     print("prog: ")
     println(prog)
+    val progAST = parseAll(P, prog).get
 
     val outputs = inputs map { input ⇒
       println
       print("in:   ")
       output(input)
 
-      val result = evaluate(parseAll(P, prog).get, Map("x" -> input))
+      val result = evaluate(progAST, Map(progAST.id.id -> input))
       print("out:  ")
       output(result)
     }

@@ -1,28 +1,74 @@
 import util.parsing.combinator._
 
-trait Expr
-case class Value(value: Long) extends Expr
-case class Id(id: String) extends Expr
+trait Expr {
+  def size: Int
+}
 
-trait Op extends Expr
-trait Op1 extends Op
-case class Not(e: Expr) extends Op1
-case class Shl1(e: Expr) extends Op1
-case class Shr1(e: Expr) extends Op1
-case class Shr4(e: Expr) extends Op1
-case class Shr16(e: Expr) extends Op1
-trait Op2 extends Op
-case class And(l: Expr, r: Expr) extends Op2
-case class Or(l: Expr, r: Expr) extends Op2
-case class Xor(l: Expr, r: Expr) extends Op2
-case class Plus(l: Expr, r: Expr) extends Op2
+case class Value(value: Long) extends Expr {
+  def size = 1
+}
 
-case class If0(p: Expr, t: Expr, f: Expr) extends Expr
-case class Fold(x: Expr, init: Expr, lambda: Lambda2) extends Expr
+case class Id(id: String) extends Expr {
+  def size = 1
+}
 
-trait Lambda extends Expr
-case class Lambda1(id: Id, body: Expr) extends Lambda
-case class Lambda2(id1: Id, id2: Id, body: Expr) extends Lambda
+// op1
+
+case class Not(e: Expr) extends Expr {
+  def size = 1 + e.size
+}
+
+case class Shl1(e: Expr) extends Expr {
+  def size = 1 + e.size
+}
+
+case class Shr1(e: Expr) extends Expr {
+  def size = 1 + e.size
+}
+
+case class Shr4(e: Expr) extends Expr {
+  def size = 1 + e.size
+}
+
+case class Shr16(e: Expr) extends Expr {
+  def size = 1 + e.size
+}
+
+// op2
+
+case class And(l: Expr, r: Expr) extends Expr {
+  def size = 1 + l.size + r.size
+}
+
+case class Or(l: Expr, r: Expr) extends Expr {
+  def size = 1 + l.size + r.size
+}
+
+case class Xor(l: Expr, r: Expr) extends Expr {
+  def size = 1 + l.size + r.size
+}
+
+case class Plus(l: Expr, r: Expr) extends Expr {
+  def size = 1 + l.size + r.size
+}
+
+case class If0(p: Expr, t: Expr, f: Expr) extends Expr {
+  def size = 1 + p.size + t.size + f.size
+}
+
+case class Fold(x: Expr, init: Expr, lambda: Lambda2) extends Expr {
+  def size = 2 + x.size + init.size + lambda.size
+}
+
+case class Lambda1(id: Id, body: Expr) extends Expr {
+  def argName = id.id
+  def size = 1 + body.size
+}
+case class Lambda2(id1: Id, id2: Id, body: Expr) extends Expr {
+  def argName1 = id1.id
+  def argName2 = id2.id
+  def size = body.size
+}
 
 object Parser extends RegexParsers {
 
@@ -70,4 +116,35 @@ object Parser extends RegexParsers {
   def P = lambda1
 
   def parse(s: String) = parseAll(P, s)
+
+  def getSize(prog: String): Int = {
+    val progAST = parseAll(P, prog).get
+    progAST.size
+  }
+}
+
+object ASTTests extends App {
+  // expr size
+  assert(1 == Parser.parseAll(Parser.expr, "1").get.size)
+  assert(1 == Parser.parseAll(Parser.expr, "0").get.size)
+  assert(1 == Parser.parseAll(Parser.expr, "x").get.size)
+  assert(2 == Parser.parseAll(Parser.expr, "(not 1)").get.size)
+  assert(2 == Parser.parseAll(Parser.expr, "(shl1 1)").get.size)
+  assert(2 == Parser.parseAll(Parser.expr, "(shr1 1)").get.size)
+  assert(2 == Parser.parseAll(Parser.expr, "(shr4 1)").get.size)
+  assert(2 == Parser.parseAll(Parser.expr, "(shr16 1)").get.size)
+  assert(3 == Parser.parseAll(Parser.expr, "(and 1 1)").get.size)
+  assert(3 == Parser.parseAll(Parser.expr, "(or 1 1)").get.size)
+  assert(3 == Parser.parseAll(Parser.expr, "(xor 1 1)").get.size)
+  assert(3 == Parser.parseAll(Parser.expr, "(plus 1 1)").get.size)
+  assert(4 == Parser.parseAll(Parser.expr, "(if0 0 0 1)").get.size)
+  assert(5 == Parser.parseAll(Parser.expr, "(fold 0 0 (lambda (x y) 0))").get.size)
+
+  // program size
+  assert(3 == Parser.getSize("(lambda (x) (not x))"))
+  assert(3 == Parser.getSize("(lambda (x) (not 0))"))
+  assert(3 == Parser.getSize("(lambda (x) (shr1 0))"))
+  assert(4 == Parser.getSize("(lambda (x) (plus x 0))"))
+  assert(8 == Parser.getSize("(lambda (x) (fold x 0 (lambda (y z) (or y z))))"))
+  assert(16 == Parser.getSize("(lambda (x_37132) (fold (if0 (shr4 (plus (shr1 1) x_37132)) 0 x_37132) x_37132 (lambda (x_37133 x_37134) (if0 x_37134 x_37133 x_37133))))"))
 }
