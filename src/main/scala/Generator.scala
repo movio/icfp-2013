@@ -98,20 +98,22 @@ object Generator extends App {
         fillAST(new Lambda1(arg, astForOp(opsLeft.head)), opsLeft.tail, names).asInstanceOf[T]
     }
 
-  // heh. should we confirm that size is Int?
   def generatePrograms(ops: Set[String], size: Int): Stream[Program] = {
-    //require(size >= 3, "minimum number of ops in our problem set is 3")
+    def programSkeleton(inputName: String) = Lambda1(Id(inputName), PlaceHolder)
+
     if (ops contains "tfold") ???
     else {
-      // actual ops guess
       if (ops.size + 2 == size) {
         val inputName = gensym
-        Stream(fillAST(Lambda1(Id(inputName), PlaceHolder), ops.toList, List(inputName)))
-      } else if (ops.size + 3 == size) { // meh. TODO
+        Stream(fillAST(programSkeleton(inputName), ops.toList, List(inputName)))
+
+      } else if (ops.size + 3 == size) {
         val inputName = gensym
-        Stream(fillAST(Lambda1(Id(inputName), PlaceHolder), ops.toList, List(inputName)))
+        Stream(fillAST(programSkeleton(inputName), ops.toList, List(inputName)))
+
       } else ???
     }
+
   }
 
   // op1
