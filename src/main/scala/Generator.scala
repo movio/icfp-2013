@@ -1,4 +1,6 @@
-case object PlaceHolder extends Expr
+case object PlaceHolder extends Expr {
+  def size = ???
+}
 
 object RandomUtils {
 
