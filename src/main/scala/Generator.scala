@@ -6,6 +6,15 @@ object RandomUtils {
 
 }
 
+case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Actor
+
+  def testProgram(p: Generator.Program): Boolean = {
+    knownInputsToOutputs.forall {
+      case (input, expectedOutput) ⇒ Interpreter.evaluate(p, Map(p.argName → 1)) == expectedOutput
+    }
+  }
+}
+
 object Generator extends App {
 
   private var counter = 0
@@ -120,6 +129,7 @@ object Generator extends App {
       assert(1 == generatePrograms(Set(op), size = 4).size)
       val genProgram = generatePrograms(Set(op), size = 4).head
       println(genProgram)
+      assert(ProgramTester(Map(1L → expected)).testProgram(genProgram))
       assert(expected == Interpreter.evaluate(genProgram, Map(genProgram.argName → 1)))
   }
 
