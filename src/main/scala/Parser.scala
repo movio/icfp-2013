@@ -7,7 +7,14 @@ trait Expr {
 case class Value(value: Long) extends Expr
 case class Id(id: String) extends Expr
 
-case class Not(e: Expr) extends Expr
+case class Not(e: Expr) extends Expr {
+
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case Not(PlaceHolder) ⇒ Not(Id(RandomUtils.pickRandom(names)))
+    case _                ⇒ Not(e.fillWithRandomNames(names))
+  }
+
+}
 case class Shl1(e: Expr) extends Expr {
 
   override def fillWithRandomNames(names: List[String]) = this match {
@@ -16,9 +23,30 @@ case class Shl1(e: Expr) extends Expr {
   }
 
 }
-case class Shr1(e: Expr) extends Expr
-case class Shr4(e: Expr) extends Expr
-case class Shr16(e: Expr) extends Expr
+case class Shr1(e: Expr) extends Expr {
+
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case Shr1(PlaceHolder) ⇒ Shr1(Id(RandomUtils.pickRandom(names)))
+    case _                 ⇒ Shr1(e.fillWithRandomNames(names))
+  }
+
+}
+case class Shr4(e: Expr) extends Expr {
+
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case Shr4(PlaceHolder) ⇒ Shr4(Id(RandomUtils.pickRandom(names)))
+    case _                 ⇒ Shr4(e.fillWithRandomNames(names))
+  }
+
+}
+case class Shr16(e: Expr) extends Expr {
+
+  override def fillWithRandomNames(names: List[String]) = this match {
+    case Shr16(PlaceHolder) ⇒ Shr16(Id(RandomUtils.pickRandom(names)))
+    case _                  ⇒ Shr16(e.fillWithRandomNames(names))
+  }
+
+}
 case class And(l: Expr, r: Expr) extends Expr
 case class Or(l: Expr, r: Expr) extends Expr
 case class Xor(l: Expr, r: Expr) extends Expr

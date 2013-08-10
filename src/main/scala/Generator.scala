@@ -102,9 +102,12 @@ object Generator extends App {
     }
   }
 
-  assert(1 == generatePrograms(Set("shl1"), size = 3).size)
-  val shl1Program = generatePrograms(Set("shl1"), size = 3).head
-  println(shl1Program)
-  assert(2L == Interpreter.evaluate(shl1Program, Map(shl1Program.argName → 1)))
+  List(("not", -2L), ("shl1", 2L), ("shr1", 0L), ("shr4", 0L), ("shr16", 0L)) foreach {
+    case (op, expected) ⇒
+      assert(1 == generatePrograms(Set(op), size = 3).size)
+      val genProgram = generatePrograms(Set(op), size = 3).head
+      println(genProgram)
+      assert(expected == Interpreter.evaluate(genProgram, Map(genProgram.argName → 1)))
+  }
 
 }
