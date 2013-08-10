@@ -7,12 +7,14 @@ import spray.json._
 import spray.json.DefaultJsonProtocol._
 
 object Remote extends App {
+  trait Request
+
   val BaseUrl = "http://icfpc2013.cloudapp.net/"
   val params = Map("auth" -> "0328SAmjHevv7SW0OT2lYdIxjSuhVp2HX31j1dSSvpsH1H")
 
   case class TrainingRequest(
     size: Option[Int],
-    operators: Option[Seq[String]])
+    operators: Option[Seq[String]]) extends Request
 
   case class TrainingProblem(
     challenge: String,
@@ -42,16 +44,16 @@ object Remote extends App {
 
   def myProblems(): Seq[Problem] = {
     implicit val resultFormatter = jsonFormat5(Problem)
-    
+
     val result = Http(url(BaseUrl + "myproblems").POST <<? params << "{}" OK as.String)
-    
+
     result().asJson.convertTo[Seq[Problem]]
   }
 
   case class EvalRequest(
     id: Option[String],
     program: Option[String],
-    arguments: Seq[String])
+    arguments: Seq[String]) extends Request
 
   case class EvalResponse(
     status: String,
@@ -61,7 +63,7 @@ object Remote extends App {
   def eval(request: EvalRequest): EvalResponse = {
     implicit val requestFormatter = jsonFormat3(EvalRequest)
     implicit val resultFormatter = jsonFormat3(EvalResponse)
-    
+
     val requestJson = request.toJson.compactPrint
     val result = Http(url(BaseUrl + "eval").POST <<? params << requestJson OK as.String)
 
@@ -70,7 +72,7 @@ object Remote extends App {
 
   case class GuessRequest(
     id: String,
-    program: String)
+    program: String) extends Request
 
   case class GuessResponse(
     status: String,
@@ -81,7 +83,7 @@ object Remote extends App {
   def guess(request: GuessRequest): GuessResponse = {
     implicit val requestFormatter = jsonFormat2(GuessRequest)
     implicit val resultFormatter = jsonFormat4(GuessResponse)
-    
+
     val requestJson = request.toJson.compactPrint
     val result = Http(url(BaseUrl + "guess").POST <<? params << requestJson OK as.String)
 
