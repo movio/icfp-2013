@@ -1,4 +1,6 @@
 
+package remote
+
 import dispatch._
 import dispatch.Defaults._
 import spray.json._
