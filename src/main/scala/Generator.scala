@@ -116,16 +116,31 @@ object Generator extends App {
 
   }
 
-  def fill(expr: Expr, ops: Set[String], names: List[String]): Stream[Expr] =
+  def fill(expr: Expr, ops: Seq[String], names: Seq[String]): Stream[Expr] = {
+    def fillOps(f: Expr ⇒ Expr) =
+      ops.toStream.flatMap(op ⇒ fill(astForOp(op), ops diff Seq(op), names) map f)
+    def fillNumbers(f: Expr ⇒ Expr) =
+      f(Value(0)) #:: f(Value(1)) #:: Stream.empty[Expr]
+    def fillNames(f: Expr ⇒ Expr) =
+      names.toStream.map(n ⇒ f(Id(n)))
+    def fillAll(f: Expr ⇒ Expr) =
+      fillNumbers(f) ++ fillNames(f) ++ fillOps(f)
+
     expr match {
-      case Lambda1(arg, PlaceHolder) ⇒
-        Lambda1(arg, Value(0)) #:: Lambda1(arg, Value(1)) #:: names.map(n ⇒ Lambda1(arg, Id(n))).toStream
+      case Not(PlaceHolder) ⇒ fillAll(Not(_))
+      case Lambda1(arg, PlaceHolder) ⇒ fillAll(Lambda1(arg, _))
     }
+  }
 
   val emptyProg = Lambda1(Id("a"), PlaceHolder)
-  assert(fill(emptyProg, Set(), List("a")) contains Lambda1(Id("a"), Value(0)))
-  assert(fill(emptyProg, Set(), List("a")) contains Lambda1(Id("a"), Value(1)))
-  assert(fill(emptyProg, Set(), List("a")) contains Lambda1(Id("a"), Id("a")))
+  assert(fill(emptyProg, List(), List("a")) contains Lambda1(Id("a"), Value(0)))
+  assert(fill(emptyProg, List(), List("a")) contains Lambda1(Id("a"), Value(1)))
+  assert(fill(emptyProg, List(), List("a")) contains Lambda1(Id("a"), Id("a")))
+
+  assert(fill(emptyProg, List("not"), List("a")) contains Lambda1(Id("a"), Id("a")))
+  assert(fill(emptyProg, List("not"), List("a")) contains Lambda1(Id("a"), Not(Id("a"))))
+  assert(fill(emptyProg, List("not"), List("a")) contains Lambda1(Id("a"), Not(Value(0))))
+  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Not(Not(Value(0)))))
 
   // too hard.
   // always
