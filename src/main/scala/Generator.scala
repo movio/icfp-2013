@@ -4,6 +4,12 @@ object RandomUtils {
 
   def pickRandom[T](choices: List[T]): T = choices(scala.util.Random.nextInt % choices.size)
 
+  // http://stackoverflow.com/a/12525242
+  def comb2[A](as: List[A]): List[(A, A)] = {
+    require(as.size > 0, "need input.")
+    if (as.size == 1) List((as(0), as(0)))
+    else (List.fill(2)(as)).flatten.combinations(2).map(muh ⇒ (muh(0), muh(1))).toList
+  }
 }
 
 case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Actor
@@ -16,6 +22,11 @@ case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Act
 }
 
 object Generator extends App {
+
+  println(RandomUtils.comb2(List(1)))
+  println(RandomUtils.comb2(List(1, 2)))
+  println(RandomUtils.comb2(List(1, 2, 3)))
+//  assert(List((1, 1)) == RandomUtils.combinations2(List(1, 2)))
 
   private var counter = 0
   def gensym = {
@@ -63,23 +74,48 @@ object Generator extends App {
 
   type Program = Lambda1
 
-  def fill(expr: Expr, ops: Seq[String], names: Seq[String]): Stream[Expr] = {
-    def fillOps(f: Expr ⇒ Expr) =
-      ops.toStream.flatMap(op ⇒ fill(astForOp(op), ops diff Seq(op), names) map f)
-    def fillNumbers(f: Expr ⇒ Expr) =
-      f(Value(0)) #:: f(Value(1)) #:: Stream.empty[Expr]
-    def fillNames(f: Expr ⇒ Expr) =
-      names.toStream.map(n ⇒ f(Id(n)))
-    def fillAll(f: Expr ⇒ Expr) =
-      fillNumbers(f) ++ fillNames(f) ++ fillOps(f)
+  def fill(expr: Expr, ops: List[String], names: List[String]): Stream[Expr] = {
+    def fillOps1(f: Expr ⇒ Expr) = ops.toStream.flatMap(op ⇒ fill(astForOp(op), ops diff Seq(op), names) map f)
+    def fillNumbers1(f: Expr ⇒ Expr) = f(Value(0)) #:: f(Value(1)) #:: Stream.empty[Expr]
+    def fillNames1(f: Expr ⇒ Expr) = names.toStream.map(n ⇒ f(Id(n)))
+    def fill1(f: Expr ⇒ Expr) = fillNumbers1(f) ++ fillNames1(f) ++ fillOps1(f)
+
+    def fillOps2(f: (Expr, Expr) ⇒ Expr) =
+      RandomUtils.comb2(ops).toStream.flatMap{ case (o1, o2) ⇒
+        // WIP. not there yet.
+        if (o1 != o2) {
+          fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
+            case (e1, e2) ⇒ f(e1, e2)
+          }
+        }
+        else {
+          fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
+            case (e1, e2) ⇒ f(e1, e2)
+          }
+        }
+      }
+
+    def fillNumbers2(f: (Expr, Expr) ⇒ Expr) =
+      f(Value(0), Value(0)) #:: f(Value(1), Value(0)) #:: f(Value(0), Value(1)) #:: f(Value(1), Value(1)) #:: Stream.empty[Expr]
+    def fillNames2(f: (Expr, Expr) ⇒ Expr) =
+      RandomUtils.comb2(names).toStream.flatMap { case (n1, n2) ⇒
+        if (n1 != n2) { // order matters in this case
+          f(Id(n1), Id(n2)) #:: f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
+        } else {
+          f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
+        }
+      }
+    def fill2(f: (Expr, Expr) ⇒ Expr) = fillNumbers2(f) ++ fillNames2(f)
+
 
     expr match {
-      case Not(PlaceHolder) ⇒ fillAll(Not(_))
-      case Shl1(PlaceHolder) ⇒ fillAll(Shl1(_))
-      case Shr1(PlaceHolder) ⇒ fillAll(Shr1(_))
-      case Shr4(PlaceHolder) ⇒ fillAll(Shr4(_))
-      case Shr16(PlaceHolder) ⇒ fillAll(Shr16(_))
-      case Lambda1(arg, PlaceHolder) ⇒ fillAll(Lambda1(arg, _))
+      case Not(PlaceHolder) ⇒ fill1(Not(_))
+      case Shl1(PlaceHolder) ⇒ fill1(Shl1(_))
+      case Shr1(PlaceHolder) ⇒ fill1(Shr1(_))
+      case Shr4(PlaceHolder) ⇒ fill1(Shr4(_))
+      case Shr16(PlaceHolder) ⇒ fill1(Shr16(_))
+      case Or(PlaceHolder, PlaceHolder) ⇒ fill2(Or(_, _))
+      case Lambda1(arg, PlaceHolder) ⇒ fill1(Lambda1(arg, _))
     }
   }
 
@@ -110,6 +146,8 @@ object Generator extends App {
   assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shr4(Id("a"))))
   assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shr4(Shl1(Id("a")))))
   assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shl1(Shr4(Id("a")))))
+
+  assert(fill(emptyProg, List("or"), List("a")) contains Lambda1(Id("a"), Or(Id("a"), Id("a"))))
 
   //    {
   //        "id": "0Q0hlUyfQA4kvJa6YFpA7VSn",
