@@ -1,4 +1,4 @@
-import scala._
+import Interpreter._
 
 object OperatorPermuter extends App {
 
@@ -41,7 +41,11 @@ object OperatorPermuter extends App {
       }
 
       nextIter.foldLeft(List.empty[List[Expr]]) { (acc, next) ⇒
-        acc ++ perms(next._1, next._2)
+        val (partial, ops) = next
+        if (partial.head == PlaceHolder)
+          acc ++ perms(Value(0) :: partial.tail, ops) ++ perms(Value(1) :: partial.tail, ops) ++ perms(Id("x") :: partial.tail, ops)
+        else
+          acc ++ perms(partial, ops)
       }
     }
   }
@@ -61,12 +65,16 @@ object OperatorPermuter extends App {
     case _: Fold     ⇒ 3 // 3 expressions, so 3, not 4
   }
 
-  val stuff = perms(List(PlaceHolder),
+  println("starting")
+  val start = System.nanoTime
+
+  val stuff = perms(Nil,
     List(
       If0(PlaceHolder, PlaceHolder, PlaceHolder),
       And(PlaceHolder, PlaceHolder),
-      And(PlaceHolder, PlaceHolder),
+      Plus(PlaceHolder, PlaceHolder),
       Shr1(PlaceHolder),
+      PlaceHolder,
       PlaceHolder,
       PlaceHolder,
       PlaceHolder,
@@ -74,6 +82,37 @@ object OperatorPermuter extends App {
     )
   )
 
-  stuff foreach println
+//  val stuff = perms(Nil,
+//    List(
+//      Fold(PlaceHolder, PlaceHolder, Lambda2(Id("y"), Id("z"), PlaceHolder)),
+//      Xor(PlaceHolder, PlaceHolder),
+//      Shl1(PlaceHolder),
+//      Shr16(PlaceHolder),
+//      Shr16(PlaceHolder),
+//      Shr4(PlaceHolder),
+//      Shr4(PlaceHolder),
+//      PlaceHolder,
+//      PlaceHolder,
+//      PlaceHolder,
+//      PlaceHolder
+//    )
+//  )
+
+  //stuff foreach println
+  val real = stuff map { list ⇒ Lambda1(Id("x"), list.head) }
+  val duration = System.nanoTime - start
+  println(f"duration: ${duration / 1000000.0}%.02fms")
+
+
+  println("running test program")
+
+  val inputs = Seq(0x342abcL, 0x23498deb29L, 0xaab234L, 0x2983712298371L, 0xbdaefcabdefcL)
+  val outputs = Seq(0x342abcL, 0x1L, 0xaab234L, 0x1L, 0xbdaefcabdefcL)
+
+  val matching = real filter { expr ⇒ eval(expr, inputs: _*) == outputs } //map { expr ⇒ eval(expr, inputs: _*) } foreach println //filter { _ == outputs }
+  //println(outputs)
+  matching foreach println
+  println(matching.size)
+
   println(stuff.size)
 }

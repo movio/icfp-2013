@@ -2,24 +2,29 @@ import Parser._
 
 object Interpreter {
 
-  def eval(prog: String, inputs: Long*): Seq[Long] = {
-    println
-    print("prog: ")
-    println(prog)
-    val progAST = parseAll(P, prog).get
+  def eval(progAST: Lambda1, inputs: Long*): Seq[Long] = {
+    //println
+    //print("prog: ")
+    //println(progAST)
 
     val outputs = inputs map { input ⇒
-      println
-      print("in:   ")
-      output(input)
+      //println
+      //print("in:   ")
+      //output(input)
 
       val result = evaluate(progAST, Map(progAST.id.id -> input))
-      print("out:  ")
-      output(result)
+      //print("out:  ")
+      //output(result)
+      result
     }
 
-    println
+    //println
     outputs
+  }
+
+  def eval(prog: String, inputs: Long*): Seq[Long] = {
+    val progAST = parseAll(P, prog).get
+    eval(progAST, inputs: _*)
   }
 
   def output(long: Long) = {
