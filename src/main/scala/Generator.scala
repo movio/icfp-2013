@@ -2,7 +2,7 @@ case object PlaceHolder extends Expr {
   def size = ???
 }
 
-object RandomUtils {
+object RandomUtils extends App {
 
   def pickRandom[T](choices: List[T]): T = choices(scala.util.Random.nextInt % choices.size)
 
@@ -12,6 +12,26 @@ object RandomUtils {
     if (as.size == 1) Stream((as(0), as(0)))
     else as.combinations(2).map(muh ⇒ (muh(0), muh(1))).toStream ++ as.map(a ⇒ (a, a))
   }
+
+
+  // http://rosettacode.org/wiki/Permutations_with_repetitions
+  /**
+   * Calculates all permutations taking n elements of the input List,
+   * with repetitions.
+   * Precondition: input.length > 0 && n > 0
+   */
+  def perms[T](input : Stream[T], n : Int) : Stream[List[T]] = {
+    //require(input.length > 0 && n > 0)
+    n match {
+      case 1 ⇒ for (el ← input) yield List(el)
+      case _ ⇒ for (el ← input; perm ← perms(input, n - 1)) yield el :: perm
+    }
+  }
+  println(perms(Stream(1, 2, 3), 2).toList)
+  println(perms(Stream(1), 2).toList)
+  println(perms(Stream(1), 3).toList)
+  println(perms(Stream(1, 2), 2).toList)
+
 }
 
 case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Actor
