@@ -6,11 +6,10 @@ import dispatch.Defaults._
 import spray.json._
 import spray.json.DefaultJsonProtocol._
 
-object Remote extends App {
-  trait Request
+object Remote {
 
   val BaseUrl = "http://icfpc2013.cloudapp.net/"
-  val params = Map("auth" -> "0328SAmjHevv7SW0OT2lYdIxjSuhVp2HX31j1dSSvpsH1H")
+  val Params = Map("auth" -> "0328SAmjHevv7SW0OT2lYdIxjSuhVp2HX31j1dSSvpsH1H")
 
   case class TrainingRequest(
     size: Option[Int],
@@ -30,11 +29,12 @@ object Remote extends App {
     implicit val resultFormatter = jsonFormat4(TrainingProblem)
 
     val requestJson = request.toJson.compactPrint
-    val result = Http(url(BaseUrl + "train").POST <<? params << requestJson OK as.String)
+    val result = Http(url(BaseUrl + "train").POST <<? Params << requestJson OK as.String)
 
     result().asJson.convertTo[TrainingProblem]
   }
 
+  trait Request
   case class Problem(
     id: String,
     size: Int,
@@ -45,7 +45,7 @@ object Remote extends App {
   def myProblems(): Seq[Problem] = {
     implicit val resultFormatter = jsonFormat5(Problem)
 
-    val result = Http(url(BaseUrl + "myproblems").POST <<? params << "{}" OK as.String)
+    val result = Http(url(BaseUrl + "myproblems").POST <<? Params << "{}" OK as.String)
 
     result().asJson.convertTo[Seq[Problem]]
   }
@@ -65,7 +65,7 @@ object Remote extends App {
     implicit val resultFormatter = jsonFormat3(EvalResponse)
 
     val requestJson = request.toJson.compactPrint
-    val result = Http(url(BaseUrl + "eval").POST <<? params << requestJson OK as.String)
+    val result = Http(url(BaseUrl + "eval").POST <<? Params << requestJson OK as.String)
 
     result().asJson.convertTo[EvalResponse]
   }
@@ -85,7 +85,7 @@ object Remote extends App {
     implicit val resultFormatter = jsonFormat4(GuessResponse)
 
     val requestJson = request.toJson.compactPrint
-    val result = Http(url(BaseUrl + "guess").POST <<? params << requestJson OK as.String)
+    val result = Http(url(BaseUrl + "guess").POST <<? Params << requestJson OK as.String)
 
     result().asJson.convertTo[GuessResponse]
   }

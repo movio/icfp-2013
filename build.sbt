@@ -30,3 +30,7 @@ libraryDependencies += "com.typesafe" % "config" % "1.0.2"
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.7"
 
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.0.M6-SNAP33" % "test"
+
+libraryDependencies += "junit" % "junit" % "4.11" % "test"
+

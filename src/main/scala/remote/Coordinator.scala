@@ -5,7 +5,8 @@ import akka.actor.Actor
 class Coordinator extends Actor {
 
   def receive = {
-    case _ ⇒
+    case Worker.ProblemComplete(id) ⇒
+    case _                          ⇒
   }
 
 }
