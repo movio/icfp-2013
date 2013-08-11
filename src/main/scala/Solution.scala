@@ -29,7 +29,7 @@ case class ActualProblemSolver() {
     // step 3
     if (count == 0){
       programs = Generator.generateProblems(problem.operators, problem.size)
-      println(s"first generated programs: ${programs.take(1)}")
+      println(s"first generated program: ${programs.take(1)}")
     }
     programs = programs.filter { p ⇒
       trainingData.map { case (i, o) ⇒
@@ -49,12 +49,11 @@ case class ActualProblemSolver() {
     guessResponse.status match {
       case "win" ⇒
         println("======================= 👍 SOLVED =================================")
-        println("SHOULD BE SLEEEPING")
+        trainingData = Map.empty[Long, Long]
         Thread.sleep(10 * 1000)
       case "mismatch" ⇒
         println("======================= 😿 NEED TO TRY AGAIN =================================")
         trainingData += (guessResponse.values.map(vs ⇒ hexToLong(vs(0)) → hexToLong(vs(1))).get)
-        //trainingData ++= getTrainingData(trainingRequest(problem.id))
         Thread.sleep(10 * 1000)
         if (count > 2) throw new Exception("NEED TO TRY AGAIN")
         else solve(problem, count + 1)
