@@ -2,16 +2,27 @@ case object PlaceHolder extends Expr {
   def size = ???
 }
 
-object RandomUtils {
+object RandomUtils extends App {
 
   def pickRandom[T](choices: List[T]): T = choices(scala.util.Random.nextInt % choices.size)
 
-  // http://stackoverflow.com/a/12525242
-  def comb2[A](as: Stream[A]): Stream[(A, A)] = {
-    require(as.size > 0, "need input.")
-    if (as.size == 1) Stream((as(0), as(0)))
-    else as.combinations(2).map(muh ⇒ (muh(0), muh(1))).toStream ++ as.map(a ⇒ (a, a))
+  // http://rosettacode.org/wiki/Permutations_with_repetitions
+  /**
+   * Calculates all permutations taking n elements of the input List,
+   * with repetitions.
+   * Precondition: input.length > 0 && n > 0
+   */
+  def perms[T](input : Stream[T], n : Int) : Stream[List[T]] = {
+    //require(input.length > 0 && n > 0)
+    n match {
+      case 1 ⇒ for (el ← input) yield List(el)
+      case _ ⇒ for (el ← input; perm ← perms(input, n - 1)) yield el :: perm
+    }
   }
+  println(perms(Stream(1, 2, 3), 2).toList)
+  println(perms(Stream(1), 2).toList)
+  println(perms(Stream(1), 3).toList)
+  println(perms(Stream(1, 2), 2).toList)
 }
 
 case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Actor
@@ -24,11 +35,6 @@ case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Act
 }
 
 object Generator extends App {
-
-  println(RandomUtils.comb2(Stream(1)).toList)
-  println(RandomUtils.comb2(Stream(1, 2)).toList)
-  println(RandomUtils.comb2(Stream(1, 2, 3)).toList)
-  //  assert(List((1, 1)) == RandomUtils.combinations2(List(1, 2)))
 
   private var counter = 0
   def gensym = {
@@ -76,78 +82,43 @@ object Generator extends App {
 
   type Program = Lambda1
 
-  def fill(expr: Expr, ops: List[String], names: List[String]): Stream[Expr] = {
-    def fillOps1(f: Expr ⇒ Expr) = ops.toStream.flatMap(op ⇒ fill(astForOp(op), ops diff Seq(op), names) map f)
-    def fillNumbers1(f: Expr ⇒ Expr) = f(Value(0)) #:: f(Value(1)) #:: Stream.empty[Expr]
-    def fillNames1(f: Expr ⇒ Expr) = names.toStream.map(n ⇒ f(Id(n)))
-    def fill1(f: Expr ⇒ Expr) = fillNumbers1(f) ++ fillNames1(f) ++ fillOps1(f)
 
-    // def fillOps2(f: (Expr, Expr) ⇒ Expr) =
-    //   RandomUtils.comb2(ops).toStream.flatMap {
-    //     case (o1, o2) ⇒
-    //       // WIP. not there yet.
-    //       if (o1 != o2) {
-    //         fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
-    //           case (e1, e2) ⇒ f(e1, e2)
-    //         }
-    //       } else {
-    //         fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
-    //           case (e1, e2) ⇒ f(e1, e2)
-    //         }
-    //       }
-    //   }
-
-    // def fillNumbers2(f: (Expr, Expr) ⇒ Expr) =
-    //   f(Value(0), Value(0)) #:: f(Value(1), Value(0)) #:: f(Value(0), Value(1)) #:: f(Value(1), Value(1)) #:: Stream.empty[Expr]
-    // def fillNames2(f: (Expr, Expr) ⇒ Expr) =
-    //   RandomUtils.comb2(names).toStream.flatMap {
-    //     case (n1, n2) ⇒
-    //       if (n1 != n2) { // order matters in this case
-    //         f(Id(n1), Id(n2)) #:: f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
-    //       } else {
-    //         f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
-    //       }
-    //   }
-    // def fill2(f: (Expr, Expr) ⇒ Expr) = fillNumbers2(f) ++ fillNames2(f)
-
-    expr match {
-      case Not(PlaceHolder)             ⇒ fill1(Not(_))
-      case Shl1(PlaceHolder)            ⇒ fill1(Shl1(_))
-      case Shr1(PlaceHolder)            ⇒ fill1(Shr1(_))
-      case Shr4(PlaceHolder)            ⇒ fill1(Shr4(_))
-      case Shr16(PlaceHolder)           ⇒ fill1(Shr16(_))
-      // case Or(PlaceHolder, PlaceHolder) ⇒ fill2(Or(_, _))
-      case Lambda1(arg, PlaceHolder)    ⇒ fill1(Lambda1(arg, _))
-    }
+  // TODO: let's do the ast conversion up front, don't pass in strings
+  def asts(ops: List[String], names: List[String]): Stream[Expr] = {
+    (Value(0) #:: Value(1) #:: Stream.empty[Expr]) ++
+    names.toStream.map(n ⇒ Id(n)) ++
+      ops.toStream.flatMap( op ⇒ {
+        val otherOps = ops diff Seq(op)
+        astForOp(op) match {
+          case Not(_) ⇒
+            asts(otherOps, names) map Not.apply
+          case Shl1(_) ⇒
+            asts(otherOps, names) map Shl1.apply
+          case Shr1(_) ⇒
+            asts(otherOps, names) map Shr1.apply
+          case Shr4(_) ⇒
+            asts(otherOps, names) map Shr4.apply
+          case Shr16(_) ⇒
+            asts(otherOps, names) map Shr16.apply
+          case And(_, _) ⇒
+            RandomUtils.perms(asts(otherOps, names), 2) map { case a1 :: a2 :: Nil ⇒ And(a1, a2) }
+          case Or(_, _) ⇒
+            RandomUtils.perms(asts(otherOps, names), 2) map { case a1 :: a2 :: Nil ⇒ Or(a1, a2) }
+          case Xor(_, _) ⇒
+            RandomUtils.perms(asts(otherOps, names), 2) map { case a1 :: a2 :: Nil ⇒ Xor(a1, a2) }
+          case Plus(_, _) ⇒
+            RandomUtils.perms(asts(otherOps, names), 2) map { case a1 :: a2 :: Nil ⇒ Plus(a1, a2) }
+        }
+      }
+    )
   }
 
-  val emptyProg = Lambda1(Id("a"), PlaceHolder)
-  assert(fill(emptyProg, List(), List("a")) contains Lambda1(Id("a"), Value(0)))
-  assert(fill(emptyProg, List(), List("a")) contains Lambda1(Id("a"), Value(1)))
-  assert(fill(emptyProg, List(), List("a")) contains Lambda1(Id("a"), Id("a")))
-
-  assert(fill(emptyProg, List("not"), List("a")) contains Lambda1(Id("a"), Id("a")))
-  assert(fill(emptyProg, List("not"), List("a")) contains Lambda1(Id("a"), Not(Id("a"))))
-  assert(fill(emptyProg, List("not"), List("a")) contains Lambda1(Id("a"), Not(Value(0))))
-
-  assert(fill(emptyProg, List("not", "not"), List("a", "b")) contains Lambda1(Id("a"), Not(Not(Id("b")))))
-  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Not(Not(Id("a")))))
-  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Not(Not(Value(0)))))
-  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Not(Not(Value(1)))))
-  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Not(Value(1))))
-  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Value(1)))
-  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Value(0)))
-  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Id("a")))
-
-  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Id("a")))
-
-  assert(fill(emptyProg, List("not", "not"), List("a")) contains Lambda1(Id("a"), Id("a")))
-  assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shl1(Id("a"))))
-  assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shr4(Id("a"))))
-  assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shr4(Shl1(Id("a")))))
-  assert(fill(emptyProg, List("shl1", "shr4"), List("a")) contains Lambda1(Id("a"), Shl1(Shr4(Id("a")))))
-
-  //assert(fill(emptyProg, List("or"), List("a")) contains Lambda1(Id("a"), Or(Id("a"), Id("a"))))
+  assert(asts(List("not"), List("a")) contains Id("a"))
+  assert(asts(List("not"), List("a")) contains Not(Id("a")))
+  assert(asts(List("not", "and"), List("a")) contains Not(Id("a")))
+  assert(asts(List("not", "and"), List("a")) contains And(Id("a"), Not(Id("a"))))
+  assert(asts(List("not", "and"), List("a")) contains And(Id("a"), Not(Value(0))))
+  assert(asts(List("not", "and"), List("a")) contains And(Value(1), Not(Value(0))))
 
   //    {
   //        "id": "0Q0hlUyfQA4kvJa6YFpA7VSn",
@@ -163,8 +134,6 @@ object Generator extends App {
 
   // {"id":"0Q0hlUyfQA4kvJa6YFpA7VSn",
   //    "program":"(lambda (x) (shl1 x))"}
-
-  assert(fill(emptyProg, List("shl1"), List(emptyProg.argName)) contains Lambda1(Id("a"), Shl1(Id("a"))))
 
   // too hard.
   // always
