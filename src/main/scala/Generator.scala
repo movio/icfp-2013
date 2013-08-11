@@ -12,6 +12,10 @@ object RandomUtils {
     if (as.size == 1) List((as(0), as(0)))
     else (List.fill(2)(as)).flatten.combinations(2).map(muh ⇒ (muh(0), muh(1))).toList
   }
+
+  def streamCombinations[A](as: List[A]): Stream[(A, A)] =
+    as.toStream.combinations(2).map(muh ⇒ (muh(0), muh(1))).toStream
+
 }
 
 case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Actor
@@ -23,7 +27,7 @@ case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Act
   }
 }
 
-object Generator extends App {
+object Generator {
 
   println(RandomUtils.comb2(List(1)))
   println(RandomUtils.comb2(List(1, 2)))
@@ -99,6 +103,7 @@ object Generator extends App {
 
     def fillNumbers2(f: (Expr, Expr) ⇒ Expr) =
       f(Value(0), Value(0)) #:: f(Value(1), Value(0)) #:: f(Value(0), Value(1)) #:: f(Value(1), Value(1)) #:: Stream.empty[Expr]
+
     def fillNames2(f: (Expr, Expr) ⇒ Expr) =
       RandomUtils.comb2(names).toStream.flatMap {
         case (n1, n2) ⇒
@@ -111,13 +116,15 @@ object Generator extends App {
     def fill2(f: (Expr, Expr) ⇒ Expr) = fillNumbers2(f) ++ fillNames2(f)
 
     expr match {
-      case Not(PlaceHolder)             ⇒ fill1(Not(_))
-      case Shl1(PlaceHolder)            ⇒ fill1(Shl1(_))
-      case Shr1(PlaceHolder)            ⇒ fill1(Shr1(_))
-      case Shr4(PlaceHolder)            ⇒ fill1(Shr4(_))
-      case Shr16(PlaceHolder)           ⇒ fill1(Shr16(_))
-      case Or(PlaceHolder, PlaceHolder) ⇒ fill2(Or(_, _))
-      case Lambda1(arg, PlaceHolder)    ⇒ fill1(Lambda1(arg, _))
+      case Not(PlaceHolder)              ⇒ fill1(Not(_))
+      case Shl1(PlaceHolder)             ⇒ fill1(Shl1(_))
+      case Shr1(PlaceHolder)             ⇒ fill1(Shr1(_))
+      case Shr4(PlaceHolder)             ⇒ fill1(Shr4(_))
+      case Shr16(PlaceHolder)            ⇒ fill1(Shr16(_))
+      case Or(PlaceHolder, PlaceHolder)  ⇒ fill2(Or(_, _))
+      case Lambda1(arg, PlaceHolder)     ⇒ fill1(Lambda1(arg, _))
+
+      case And(PlaceHolder, PlaceHolder) ⇒ fill2(And(_, _))
     }
   }
 
@@ -180,19 +187,19 @@ object Generator extends App {
   // }
 
   def size(expr: Expr): Int = expr match {
-    case Value(_) | Id(_) ⇒ 1
-    case Not(e) ⇒ 1 + size(e)
-    case Shl1(e) ⇒ 1 + size(e)
-    case Shr1(e) ⇒ 1 + size(e)
-    case Shr4(e) ⇒ 1 + size(e)
-    case Shr16(e) ⇒ 1 + size(e)
-    case And(e1, e2) ⇒ 1 + size(e1) + size(e2)
-    case Or(e1, e2) ⇒ 1 + size(e1) + size(e2)
-    case Xor(e1, e2) ⇒ 1 + size(e1) + size(e2)
-    case Plus(e1, e2) ⇒ 1 + size(e1) + size(e2)
-    case If0(e1, e2, e3) ⇒ 1 + size(e1) + size(e2) + size(e3)
-    case Fold(e1, e2, l) ⇒ 1 + size(e1) + size(e2) + size(l)
-    case Lambda1(_, body) ⇒ 1 + size(body)
+    case Value(_) | Id(_)    ⇒ 1
+    case Not(e)              ⇒ 1 + size(e)
+    case Shl1(e)             ⇒ 1 + size(e)
+    case Shr1(e)             ⇒ 1 + size(e)
+    case Shr4(e)             ⇒ 1 + size(e)
+    case Shr16(e)            ⇒ 1 + size(e)
+    case And(e1, e2)         ⇒ 1 + size(e1) + size(e2)
+    case Or(e1, e2)          ⇒ 1 + size(e1) + size(e2)
+    case Xor(e1, e2)         ⇒ 1 + size(e1) + size(e2)
+    case Plus(e1, e2)        ⇒ 1 + size(e1) + size(e2)
+    case If0(e1, e2, e3)     ⇒ 1 + size(e1) + size(e2) + size(e3)
+    case Fold(e1, e2, l)     ⇒ 1 + size(e1) + size(e2) + size(l)
+    case Lambda1(_, body)    ⇒ 1 + size(body)
     case Lambda2(_, _, body) ⇒ 1 + size(body)
   }
 
@@ -201,18 +208,18 @@ object Generator extends App {
 
   def size(ops: List[Expr]): Int = {
     ops.map {
-      case _: Not ⇒ 1
-      case _: Shl1 ⇒ 1
-      case _: Shr1 ⇒ 1
-      case _: Shr4 ⇒ 1
+      case _: Not   ⇒ 1
+      case _: Shl1  ⇒ 1
+      case _: Shr1  ⇒ 1
+      case _: Shr4  ⇒ 1
       case _: Shr16 ⇒ 1
-      case _: And ⇒ 2
-      case _: Or ⇒ 2
-      case _: Xor ⇒ 2
-      case _: Plus ⇒ 2
-      case _: If0 ⇒ 3
-      case _: Fold ⇒ 4
-      case _ ⇒ ???
+      case _: And   ⇒ 2
+      case _: Or    ⇒ 2
+      case _: Xor   ⇒ 2
+      case _: Plus  ⇒ 2
+      case _: If0   ⇒ 3
+      case _: Fold  ⇒ 4
+      case _        ⇒ ???
     }.sum + 2
   }
 
