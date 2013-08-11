@@ -6,8 +6,6 @@ object Training extends App {
   import Hex._
   import spray.json._
 
-  ProblemSolver().start
-
   type Input = Long
   type Output = Long
 
