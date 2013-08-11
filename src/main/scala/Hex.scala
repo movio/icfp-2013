@@ -2,11 +2,76 @@ import scala.util.Random
 import java.math.BigInteger
 
 
+case class ProblemSolver() {
+
+  import Hex._
+  import Training._
+  import remote.Remote._
+  val programSize = 5
+  var trainingData: Map[Input, Output] = Map.empty[Long, Long]
+  var programs = List.empty[Lambda1]
+
+  def gen(ops: Set[String], size: Int): List[Lambda1] = List(Lambda1(Id("x"), Id("x")))
+
+  def start = {
+    val problem = getTrainer(size = Some(programSize), operators = None)
+    trainingData = getTrainingData(trainingRequest(problem.id))
+
+    // step 3
+    programs = gen(problem.operators, problem.size)
+    programs = programs.filter { p ⇒
+      trainingData.toList.forall { case (i, o) ⇒
+        Interpreter.eval(p, i) == o
+      }
+    }
+    // step 4
+    val solution: String = Pretty.stringify(programs.head)
+    println(solution)
+
+    // step 5
+    val guessRequest = GuessRequest(id = problem.id, program = solution)
+    val guessResponse = guess(guessRequest)
+
+    guessResponse.status match {
+      case "win" ⇒
+        println("======================= 👍 SOLVED =================================")
+      case "mismatch" ⇒
+        println("======================= 😿 NEED TO TRY AGAIN =================================")
+        trainingData += (guessResponse.values.map(vs ⇒ hexToLong(vs(0)) → hexToLong(vs(1))).get)
+
+
+      case "error" ⇒
+        println("======================= 👎 ERROR =================================")
+    }
+    println(guessRequest)
+    println(guessResponse)
+  }
+
+}
+
+
+
+
 object Training extends App {
 
   import remote.Remote._
   import Hex._
   import spray.json._
+
+  //ProblemSolver().start
+
+  type Input = Long
+  type Output = Long
+
+  def getTrainingData(testRequest: EvalRequest): Map[Input, Output] = {
+    val resp: EvalResponse = eval(testRequest)
+    require(resp.status == "ok", s"got negative response status: ${resp.status}")
+
+    Map(
+      ((testRequest.arguments map Hex.hexToLong) zip (resp.outputs.get map Hex.hexToLong)): _*
+    )
+    // should return input
+  }
 
   def trainingRequest(problemId: String) = {
 
@@ -27,7 +92,10 @@ object Training extends App {
     )
   }
 
-  println(trainingRequest("5LbBzemOisIyfXSFW4a3quPc"))
+  //println(trainingRequest("5LbBzemOisIyfXSFW4a3quPc"))
+
+  //ProblemSolver("5LbBzemOisIyfXSFW4a3quPc").start
+
 
   // careful this makes a request
   //println(eval(trainingRequest("5LbBzemOisIyfXSFW4a3quPc")))

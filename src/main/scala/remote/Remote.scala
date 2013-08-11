@@ -1,4 +1,3 @@
-
 package remote
 
 import dispatch._
@@ -19,7 +18,7 @@ object Remote {
     challenge: String,
     id: String,
     size: Int,
-    operators: Seq[String])
+    operators: Set[String])
 
   def getTrainer(size: Option[Int] = None, operators: Option[Seq[String]] = None): TrainingProblem =
     getTrainer(TrainingRequest(size, operators))
@@ -91,4 +90,3 @@ object Remote {
   }
 
 }
-
