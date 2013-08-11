@@ -6,14 +6,6 @@ object RandomUtils extends App {
 
   def pickRandom[T](choices: List[T]): T = choices(scala.util.Random.nextInt % choices.size)
 
-  // http://stackoverflow.com/a/12525242
-  def comb2[A](as: Stream[A]): Stream[(A, A)] = {
-    require(as.size > 0, "need input.")
-    if (as.size == 1) Stream((as(0), as(0)))
-    else as.combinations(2).map(muh ⇒ (muh(0), muh(1))).toStream ++ as.map(a ⇒ (a, a))
-  }
-
-
   // http://rosettacode.org/wiki/Permutations_with_repetitions
   /**
    * Calculates all permutations taking n elements of the input List,
@@ -31,7 +23,6 @@ object RandomUtils extends App {
   println(perms(Stream(1), 2).toList)
   println(perms(Stream(1), 3).toList)
   println(perms(Stream(1, 2), 2).toList)
-
 }
 
 case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Actor
@@ -44,11 +35,6 @@ case class ProgramTester(knownInputsToOutputs: Map[Long, Long]) { // extends Act
 }
 
 object Generator extends App {
-
-  println(RandomUtils.comb2(Stream(1)).toList)
-  println(RandomUtils.comb2(Stream(1, 2)).toList)
-  println(RandomUtils.comb2(Stream(1, 2, 3)).toList)
-  //  assert(List((1, 1)) == RandomUtils.combinations2(List(1, 2)))
 
   private var counter = 0
   def gensym = {
@@ -102,41 +88,12 @@ object Generator extends App {
     def fillNames1(f: Expr ⇒ Expr) = names.toStream.map(n ⇒ f(Id(n)))
     def fill1(f: Expr ⇒ Expr) = fillNumbers1(f) ++ fillNames1(f) ++ fillOps1(f)
 
-    // def fillOps2(f: (Expr, Expr) ⇒ Expr) =
-    //   RandomUtils.comb2(ops).toStream.flatMap {
-    //     case (o1, o2) ⇒
-    //       // WIP. not there yet.
-    //       if (o1 != o2) {
-    //         fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
-    //           case (e1, e2) ⇒ f(e1, e2)
-    //         }
-    //       } else {
-    //         fill(astForOp(o1), ops diff List(o1, o2), names).zip(fill(astForOp(o2), ops diff List(o1, o2), names)).map {
-    //           case (e1, e2) ⇒ f(e1, e2)
-    //         }
-    //       }
-    //   }
-
-    // def fillNumbers2(f: (Expr, Expr) ⇒ Expr) =
-    //   f(Value(0), Value(0)) #:: f(Value(1), Value(0)) #:: f(Value(0), Value(1)) #:: f(Value(1), Value(1)) #:: Stream.empty[Expr]
-    // def fillNames2(f: (Expr, Expr) ⇒ Expr) =
-    //   RandomUtils.comb2(names).toStream.flatMap {
-    //     case (n1, n2) ⇒
-    //       if (n1 != n2) { // order matters in this case
-    //         f(Id(n1), Id(n2)) #:: f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
-    //       } else {
-    //         f(Id(n1), Id(n2)) #:: Stream.empty[Expr]
-    //       }
-    //   }
-    // def fill2(f: (Expr, Expr) ⇒ Expr) = fillNumbers2(f) ++ fillNames2(f)
-
     expr match {
       case Not(PlaceHolder)             ⇒ fill1(Not(_))
       case Shl1(PlaceHolder)            ⇒ fill1(Shl1(_))
       case Shr1(PlaceHolder)            ⇒ fill1(Shr1(_))
       case Shr4(PlaceHolder)            ⇒ fill1(Shr4(_))
       case Shr16(PlaceHolder)           ⇒ fill1(Shr16(_))
-      // case Or(PlaceHolder, PlaceHolder) ⇒ fill2(Or(_, _))
       case Lambda1(arg, PlaceHolder)    ⇒ fill1(Lambda1(arg, _))
     }
   }
