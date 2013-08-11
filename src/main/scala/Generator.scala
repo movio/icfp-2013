@@ -229,4 +229,25 @@ object Generator extends App {
   )))
 
   // assert(4 == Set("lambda", "or") map opSize)
+
+  def opsCombinations(ops: List[Expr], programSize: Int): List[List[Expr]] = {
+    def helper(combination: List[Expr], ops: List[Expr]): List[List[Expr]] = {
+      if (size(combination) == programSize) {
+        List(combination)
+      } else if (size(combination) > programSize || ops.isEmpty) {
+        List()
+      } else {
+        (helper(combination :+ ops.head, ops) :::
+          helper(combination, ops.tail))
+      }
+    }
+    helper(ops, ops)
+  }
+
+  assert(List(List(Not(PlaceHolder))) sameElements opsCombinations(List(Not(PlaceHolder)), 3))
+  assert(List(List(Not(PlaceHolder), Not(PlaceHolder))) sameElements opsCombinations(List(Not(PlaceHolder)), 4))
+  println(opsCombinations(List(Not(PlaceHolder), And(PlaceHolder, PlaceHolder)), 6))
+  println(opsCombinations(List(Not(PlaceHolder), Shr1(PlaceHolder)), 5))
+  println(opsCombinations(List(Not(PlaceHolder), Shr1(PlaceHolder)), 6))
+  println(opsCombinations(List(And(PlaceHolder, PlaceHolder), If0(PlaceHolder, PlaceHolder, PlaceHolder), Shr1(PlaceHolder)), 10))
 }
