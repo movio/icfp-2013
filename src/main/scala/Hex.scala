@@ -11,22 +11,29 @@ case class ProblemSolver() {
   var trainingData: Map[Input, Output] = Map.empty[Long, Long]
   var programs = List.empty[Lambda1]
 
-  def gen(ops: Set[String], size: Int): List[Lambda1] = List(Lambda1(Id("x"), Id("x")))
+  //def gen(ops: Set[String], size: Int): List[Lambda1] = List(Lambda1(Id("x"), Id("x")))
 
   def start = {
     val problem = getTrainer(size = Some(programSize), operators = None)
+    println(s"got problem: $problem")
+
     trainingData = getTrainingData(trainingRequest(problem.id))
+    println(s"got trainingData: $trainingData")
 
     // step 3
-    programs = gen(problem.operators, problem.size)
+    programs = Generator.generateProblems(problem.operators, problem.size)
+    println(s"generated programs: ${programs.take(5)}")
     programs = programs.filter { p ⇒
-      trainingData.toList.forall { case (i, o) ⇒
-        Interpreter.eval(p, i) == o
-      }
+      trainingData.map { case (i, o) ⇒
+        val ir = Interpreter.eval(p, i).head
+        println(s"got $i → $ir [$o] for program $p")
+        longToHex(ir) == longToHex(o)
+      }.forall(_ == true)
     }
+    println(s"generated programs left after filter: ${programs.take(5)}")
     // step 4
     val solution: String = Pretty.stringify(programs.head)
-    println(solution)
+    println(s"looking at solution: $solution")
 
     // step 5
     val guessRequest = GuessRequest(id = problem.id, program = solution)
@@ -58,7 +65,7 @@ object Training extends App {
   import Hex._
   import spray.json._
 
-  //ProblemSolver().start
+//  ProblemSolver().start
 
   type Input = Long
   type Output = Long
