@@ -23,16 +23,17 @@ case class ActualProblemSolver() {
     }
   }
 
-  def solve(problem: Problem) = {
-    trainingData = getTrainingData(trainingRequest(problem.id))
+  def solve(problem: Problem, count: Int = 0): Unit = {
+    trainingData ++= getTrainingData(trainingRequest(problem.id))
     println(s"first trainingData: ${trainingData.take(1)}")
     // step 3
-    programs = Generator.generateProblems(problem.operators, problem.size)
-    println(s"first generated programs: ${programs.take(1)}")
+    if (count == 0){
+      programs = Generator.generateProblems(problem.operators, problem.size)
+      println(s"first generated programs: ${programs.take(1)}")
+    }
     programs = programs.filter { p ⇒
       trainingData.map { case (i, o) ⇒
         val ir = Interpreter.eval(p, i).head
-        //println(s"got $i → $ir [$o] for program $p")
         ir == o
       }.forall(_ == true)
     }
@@ -53,9 +54,10 @@ case class ActualProblemSolver() {
       case "mismatch" ⇒
         println("======================= 😿 NEED TO TRY AGAIN =================================")
         trainingData += (guessResponse.values.map(vs ⇒ hexToLong(vs(0)) → hexToLong(vs(1))).get)
-        trainingData ++= getTrainingData(trainingRequest(problem.id))
-        // TODO
-        throw new Exception("NEED TO TRY AGAIN")
+        //trainingData ++= getTrainingData(trainingRequest(problem.id))
+        Thread.sleep(10 * 1000)
+        if (count > 2) throw new Exception("NEED TO TRY AGAIN")
+        else solve(problem, count + 1)
 
       case "error" ⇒
         println("======================= 👎 ERROR =================================")
