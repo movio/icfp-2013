@@ -67,7 +67,7 @@ case class ProblemSolver() {
   import Hex._
   import Training._
   import remote.Remote._
-  val programSize = 11
+  val programSize = 7
   var trainingData: Map[Input, Output] = Map.empty[Long, Long]
   var programs = List.empty[Lambda1]
 
@@ -78,11 +78,10 @@ case class ProblemSolver() {
     println(s"got problem: $problem")
 
     trainingData = getTrainingData(trainingRequest(problem.id))
-    println(s"got trainingData: $trainingData")
-
+    println(s"first trainingData: ${trainingData.take(1)}")
     // step 3
     programs = Generator.generateProblems(problem.operators, problem.size)
-    println(s"generated programs: ${programs.take(5)}")
+    println(s"first generated programs: ${programs.take(1)}")
     programs = programs.filter { p ⇒
       trainingData.map { case (i, o) ⇒
         val ir = Interpreter.eval(p, i).head
@@ -90,7 +89,7 @@ case class ProblemSolver() {
         ir == o
       }.forall(_ == true)
     }
-    println(s"generated programs left after filter: ${programs.take(5)}")
+    println(s"first program left after filter: ${programs.take(1)}")
     // step 4
     val solution: String = Pretty.stringify(programs.head)
     println(s"looking at solution: $solution")
@@ -102,13 +101,18 @@ case class ProblemSolver() {
     guessResponse.status match {
       case "win" ⇒
         println("======================= 👍 SOLVED =================================")
+        println("SHOULD BE SLEEEPING")
+        Thread.sleep(10 * 1000)
       case "mismatch" ⇒
         println("======================= 😿 NEED TO TRY AGAIN =================================")
         trainingData += (guessResponse.values.map(vs ⇒ hexToLong(vs(0)) → hexToLong(vs(1))).get)
+        trainingData ++= getTrainingData(trainingRequest(problem.id))
         // TODO
+        throw new Exception("NEED TO TRY AGAIN")
 
       case "error" ⇒
         println("======================= 👎 ERROR =================================")
+        throw new Exception("ERROR")
     }
 
     println(guessRequest)
@@ -118,6 +122,15 @@ case class ProblemSolver() {
 }
 
 
+object Solver extends App {
+
+  import remote.Remote._
+  import Hex._
+  import spray.json._
+
+  ActualProblemSolver().start
+}
+
 
 
 object Training extends App {
@@ -126,7 +139,7 @@ object Training extends App {
   import Hex._
   import spray.json._
 
-  //ActualProblemSolver().start
+  ProblemSolver().start
 
   type Input = Long
   type Output = Long
