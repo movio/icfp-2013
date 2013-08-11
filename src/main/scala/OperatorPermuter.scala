@@ -4,9 +4,9 @@ object OperatorPermuter extends App {
 
   val ops = List(Shl1(PlaceHolder), Not(PlaceHolder), Shr4(PlaceHolder))
 
-  def perms(partial: List[Expr], ops: List[Expr]): List[List[Expr]] = {
+  def perms(partial: List[Expr], ops: List[Expr]): Stream[List[Expr]] = {
 
-    if (ops.isEmpty) List(partial)
+    if (ops.isEmpty) Stream(partial)
     else {
       val validOps = ops.distinct.filter { op ⇒ size(op) <= partial.size }
 
@@ -40,12 +40,15 @@ object OperatorPermuter extends App {
         }
       }
 
-      nextIter.foldLeft(List.empty[List[Expr]]) { (acc, next) ⇒
+      nextIter.foldLeft(Stream.empty[List[Expr]]) { (acc, next) ⇒
         val (partial, ops) = next
         if (partial.head == PlaceHolder)
-          acc ++ perms(Value(0) :: partial.tail, ops) ++ perms(Value(1) :: partial.tail, ops) ++ perms(Id("x") :: partial.tail, ops)
+          perms(Value(0) :: partial.tail, ops) #:::
+          perms(Value(1) :: partial.tail, ops) #:::
+          perms(Id("x") :: partial.tail, ops) #:::
+          acc
         else
-          acc ++ perms(partial, ops)
+          perms(partial, ops) #::: acc
       }
     }
   }
