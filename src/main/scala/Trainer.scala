@@ -17,12 +17,13 @@ case class ProblemSolver() {
   var trainingData: Map[Input, Output] = Map.empty[Long, Long]
   var programs = List.empty[Lambda1]
 
-  //def gen(ops: Set[String], size: Int): List[Lambda1] = List(Lambda1(Id("x"), Id("x")))
-
   def start = {
     val problem = getTrainer(size = Some(programSize), operators = Some(Set()))
     println(s"got problem: $problem")
+    solve(problem)
+  }
 
+  def solve(problem: TrainingProblem) = {
     trainingData = getTrainingData(trainingRequest(problem.id))
     println(s"first trainingData: ${trainingData.take(1)}")
     // step 3
