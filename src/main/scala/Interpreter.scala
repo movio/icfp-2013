@@ -41,9 +41,9 @@ object Interpreter {
     // op1
     case Not(e)     ⇒ ~(evaluate(e, env))
     case Shl1(e)    ⇒ (evaluate(e, env)) << 1
-    case Shr1(e)    ⇒ (evaluate(e, env)) >> 1
-    case Shr4(e)    ⇒ (evaluate(e, env)) >> 4
-    case Shr16(e)   ⇒ (evaluate(e, env)) >> 16
+    case Shr1(e)    ⇒ (evaluate(e, env)) >>> 1
+    case Shr4(e)    ⇒ (evaluate(e, env)) >>> 4
+    case Shr16(e)   ⇒ (evaluate(e, env)) >>> 16
 
     // op2
     case And(l, r)  ⇒ evaluate(l, env) & evaluate(r, env)

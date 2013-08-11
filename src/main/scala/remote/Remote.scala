@@ -12,7 +12,7 @@ object Remote {
 
   case class TrainingRequest(
     size: Option[Int],
-    operators: Option[Seq[String]]) extends Request
+    operators: Option[Set[String]]) extends Request
 
   case class TrainingProblem(
     challenge: String,
@@ -20,7 +20,7 @@ object Remote {
     size: Int,
     operators: Set[String])
 
-  def getTrainer(size: Option[Int] = None, operators: Option[Seq[String]] = None): TrainingProblem =
+  def getTrainer(size: Option[Int] = None, operators: Option[Set[String]] = None): TrainingProblem =
     getTrainer(TrainingRequest(size, operators))
 
   def getTrainer(request: TrainingRequest): TrainingProblem = {
@@ -37,7 +37,7 @@ object Remote {
   case class Problem(
     id: String,
     size: Int,
-    operators: Seq[String],
+    operators: Set[String],
     solved: Option[Boolean],
     timeLeft: Option[Int])
 

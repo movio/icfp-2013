@@ -1,12 +1,12 @@
-package remote
+// package remote
 
-import akka.actor.Actor
+// import akka.actor.Actor
 
-class Coordinator extends Actor {
+// class Coordinator extends Actor {
 
-  def receive = {
-    case Worker.ProblemComplete(id) ⇒
-    case _                          ⇒
-  }
+//   def receive = {
+//     case Worker.ProblemComplete(id) ⇒
+//     case _                          ⇒
+//   }
 
-}
+// }
