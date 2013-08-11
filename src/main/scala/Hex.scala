@@ -2,21 +2,40 @@ import scala.util.Random
 import java.math.BigInteger
 
 
-object Samples extends App {
+object Training extends App {
 
   import remote.Remote._
   import Hex._
   import spray.json._
 
-  val r = EvalRequest(
-    id = Some("5LbBzemOisIyfXSFW4a3quPc"),
-    program = None,
-    arguments = randomSample()
-  )
+  def trainingRequest(problemId: String) = {
 
-  //println(eval(r))
+    def generateProblemSet: List[String] = {
+      @scala.annotation.tailrec
+      def generateRandomInput(expectedSize: Int, accumulated: Set[Long]): Set[Long] = {
+        if (accumulated.size == expectedSize) accumulated
+        else generateRandomInput(expectedSize, accumulated + Random.nextLong)
+      }
+
+      generateRandomInput(256, Set(Long.MaxValue, Long.MinValue, -2L, -1L, 0L, 1L, 2L, 0xffL, 0xff00000000000000L)).toList map Hex.longToHex
+    }
+
+    EvalRequest(
+      id = Some(problemId),
+      program = None,
+      arguments = generateProblemSet
+    )
+  }
+
+  println(trainingRequest("5LbBzemOisIyfXSFW4a3quPc"))
+
+  // careful this makes a request
+  //println(eval(trainingRequest("5LbBzemOisIyfXSFW4a3quPc")))
 
 }
+
+
+
 
 object Hex {
   val sample = randomSample()

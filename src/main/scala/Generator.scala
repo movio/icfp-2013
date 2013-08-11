@@ -228,4 +228,15 @@ object Generator extends App {
   println(opsCombinations(List(Not(PlaceHolder), Shr1(PlaceHolder)), 5))
   println(opsCombinations(List(Not(PlaceHolder), Shr1(PlaceHolder)), 6))
   println(opsCombinations(List(And(PlaceHolder, PlaceHolder), If0(PlaceHolder, PlaceHolder, PlaceHolder), Shr1(PlaceHolder)), 10))
+
+  def generateProblems(ops: Set[String], programSize: Int): List[Expr] = {
+    val opsExpr = (ops map astForOp).toList
+    opsCombinations(opsExpr, programSize).flatMap(opsCombination => {
+      val placeholders = (1 to (programSize - opsCombination.size - 1)) map {_ => PlaceHolder}
+      OperatorPermuter.perms(Nil, opsCombination ++ placeholders)
+    }).flatten.map(x => Lambda1(Id("x"), x))
+  }
+  println
+  (generateProblems(Set("not", "shr1"), 5)) foreach println
+
 }
