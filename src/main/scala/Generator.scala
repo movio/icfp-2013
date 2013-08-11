@@ -126,6 +126,9 @@ object Generator extends App {
   assert(asts(List("not", "and"), List("a")) contains And(Id("a"), Not(Value(0))))
   assert(asts(List("not", "and"), List("a")) contains And(Value(1), Not(Value(0))))
 
+  assert(asts(List("not", "and", "and"), List("a")) contains And(And(Value(1), Value(1)), Not(Value(0))))
+  assert(asts(List("shr1", "and", "and"), List("a")) contains And(And(Shr1(Id("a")), Value(1)), Value(1)))
+
   //    {
   //        "id": "0Q0hlUyfQA4kvJa6YFpA7VSn",
   //        "size": 3,
