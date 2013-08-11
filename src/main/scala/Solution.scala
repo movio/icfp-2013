@@ -50,10 +50,12 @@ case class ActualProblemSolver() {
       case "win" ⇒
         println("======================= 👍 SOLVED =================================")
         trainingData = Map.empty[Long, Long]
+        println("sleeping for 10s before next problem")
         Thread.sleep(10 * 1000)
       case "mismatch" ⇒
         println("======================= 😿 NEED TO TRY AGAIN =================================")
         trainingData += (guessResponse.values.map(vs ⇒ hexToLong(vs(0)) → hexToLong(vs(1))).get)
+        println("sleeping for 10s before retry")
         Thread.sleep(10 * 1000)
         if (count > 2) throw new Exception("NEED TO TRY AGAIN")
         else solve(problem, count + 1)
