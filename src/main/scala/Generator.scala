@@ -89,14 +89,6 @@ object Generator extends App {
 
   type Program = Lambda1
 
-  def fill(expr: Expr, ops: List[String], names: List[String]): Stream[Expr] = {
-    def fillOps1(f: Expr ⇒ Expr) = ops.toStream.flatMap(op ⇒ fill(astForOp(op), ops diff Seq(op), names) map f)
-    def fillNumbers1(f: Expr ⇒ Expr) = f(Value(0)) #:: f(Value(1)) #:: Stream.empty[Expr]
-    def fillNames1(f: Expr ⇒ Expr) = names.toStream.map(n ⇒ f(Id(n)))
-    def fill1(f: Expr ⇒ Expr) = fillNumbers1(f) ++ fillNames1(f) ++ fillOps1(f)
-    null
-  }
-
   // TODO: let's do the ast conversion up front, don't pass in strings
   def asts(ops: List[String], names: List[String]): Stream[Expr] = {
     (Value(0) #:: Value(1) #:: Stream.empty[Expr]) ++
